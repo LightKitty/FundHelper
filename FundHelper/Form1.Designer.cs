@@ -28,23 +28,50 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.timerUpdate = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
+            // 
+            // textBox1
+            // 
+            this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBox1.Location = new System.Drawing.Point(0, 0);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.ReadOnly = true;
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(284, 361);
+            this.textBox1.TabIndex = 0;
+            // 
+            // timerUpdate
+            // 
+            this.timerUpdate.Enabled = true;
+            this.timerUpdate.Interval = 5000;
+            this.timerUpdate.Tick += new System.EventHandler(this.timerUpdate_Tick);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 561);
+            this.ClientSize = new System.Drawing.Size(284, 361);
+            this.Controls.Add(this.textBox1);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "基金助手";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
+
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Timer timerUpdate;
     }
 }
 
