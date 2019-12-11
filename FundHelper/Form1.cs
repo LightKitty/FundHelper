@@ -19,8 +19,8 @@ namespace FundHelper
         // 新浪基金历史API（GET）：http://finance.sina.com.cn/fund/api/xh5Fund/nav/005919.js
         // 新浪财经：https://finance.sina.com.cn/realstock/company/sh000016/nc.shtml
 
-        List<Found> founds = new List<Found>(); //基金s
-        string foundsPath = "founds.ini";
+        List<Found> founds = new List<Found>(); // 基金s
+        string foundsPath = "founds.ini"; // 基金配置文件
 
         string percentTodayNowUrl = "http://hq.sinajs.cn/list=fu_{0}"; //获取今日当前涨跌百分比地址
         public Form1()
