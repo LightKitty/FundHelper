@@ -162,9 +162,13 @@ namespace FundHelper
         /// <param name="e"></param>
         private void timerUpdate_Tick(object sender, EventArgs e)
         {
-            FoundsRealUpdate();
-            FoundsSort();
-            textBoxTextUpdate();
+            DateTime timeNow = DateTime.Now;
+            if(timeNow.Hour >= 9 && timeNow.Hour <= 16)
+            { // 9-16点刷新
+                FoundsRealUpdate();
+                FoundsSort();
+                textBoxTextUpdate();
+            }
         }
     }
 }
