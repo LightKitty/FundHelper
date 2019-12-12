@@ -58,6 +58,7 @@ namespace FundHelper
             for (int i = 0; i < this.dataGridViewFund.Columns.Count; i++)
             { //更改表头显示信息
                 dataGridViewFund.Columns[i].HeaderText = fundTable.Columns[i].Caption;
+                dataGridViewFund.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             }
             foreach (var fund in funds)
             {
