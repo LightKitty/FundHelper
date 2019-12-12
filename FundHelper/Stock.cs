@@ -11,9 +11,9 @@ namespace FundHelper
     /// </summary>
     class Stock : Security
     {
-        public override void GetFundHistory(string code)
+        public override void GetFundHistory()
         {
-            throw new NotImplementedException();
+            
         }
     }
 }

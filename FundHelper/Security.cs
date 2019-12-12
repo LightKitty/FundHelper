@@ -15,6 +15,6 @@ namespace FundHelper
         public string Name { get; set; } //基金名称
         public double? realIncrease { get; set; } //实时涨幅
 
-        public abstract void GetFundHistory(string code);
+        public abstract void GetFundHistory();
     }
 }

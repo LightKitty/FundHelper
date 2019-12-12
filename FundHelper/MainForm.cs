@@ -87,6 +87,7 @@ namespace FundHelper
             for (int i = 0; i < this.dataGridViewStock.Columns.Count; i++)
             { //更改表头显示信息
                 dataGridViewStock.Columns[i].HeaderText = stockTable.Columns[i].Caption;
+                dataGridViewStock.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             }
             foreach (var stock in stocks)
             {
@@ -140,11 +141,14 @@ namespace FundHelper
             fundsRealUpdate(); // 基金实时刷新
         }
 
+        /// <summary>
+        /// 获取基金历史信息
+        /// </summary>
         private void fundHistoryInit()
         {
             foreach(var fund in funds)
             {
-
+                fund.GetFundHistory();
             }
         }
 

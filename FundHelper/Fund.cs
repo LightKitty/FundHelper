@@ -15,9 +15,9 @@ namespace FundHelper
         /// 获取历史数据
         /// </summary>
         /// <param name="code"></param>
-        public override void GetFundHistory(string code)
+        public override void GetFundHistory()
         {
-            throw new NotImplementedException();
+            
         }
 
         /// <summary>
