@@ -14,18 +14,33 @@ namespace FundHelper
 {
     public partial class MainForm : Form
     {
-
+        #region 字段
         List<Fund> funds = new List<Fund>(); // 基金列表
-        DataTable fundTable = new DataTable("fund"); //基金数据表
+        DataTable fundTable = new DataTable("fund"); // 基金数据表
 
         List<Stock> stocks = new List<Stock>(); // 股票列表
         DataTable stockTable = new DataTable("stock"); //股票数据表
+        #endregion
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
+
+            Initfunds(); //初始化基金
+            InitStocks(); //初始化股票
+
+            InitFundDataView(); // 初始化基金DataView
+            InitStockDataView(); // 初始化股票DataView
         }
 
+        /// <summary>
+        /// 窗体加载后
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
             //long jsTimeNow = GetJsTimestampNow();
@@ -34,12 +49,6 @@ namespace FundHelper
             //byte[] buffer = SimpleGet(getUrl);
             //string result = Encoding.Default.GetString(buffer);
             //double fundValue = GetfundValue(new DateTime(2019, 12, 02));
-
-            Initfunds(); //初始化基金
-            InitStocks(); //初始化股票
-
-            InitFundDataView(); // 初始化基金DataView
-            InitStockDataView(); // 初始化股票DataView
 
             //FundTableUpdate();
 
@@ -53,8 +62,8 @@ namespace FundHelper
         {
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
-            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅" });
-            dataGridViewFund.DataSource = fundTable;
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅(%)" });
+            dataGridViewFund.DataSource = fundTable; // 绑定
             for (int i = 0; i < this.dataGridViewFund.Columns.Count; i++)
             { //更改表头显示信息
                 dataGridViewFund.Columns[i].HeaderText = fundTable.Columns[i].Caption;
@@ -73,8 +82,8 @@ namespace FundHelper
         {
             stockTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             stockTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
-            stockTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅" });
-            dataGridViewStock.DataSource = stockTable;
+            stockTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅(%)" });
+            dataGridViewStock.DataSource = stockTable; // 绑定
             for (int i = 0; i < this.dataGridViewStock.Columns.Count; i++)
             { //更改表头显示信息
                 dataGridViewStock.Columns[i].HeaderText = stockTable.Columns[i].Caption;
