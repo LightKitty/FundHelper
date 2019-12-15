@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,14 @@ namespace FundHelper
     /// </summary>
     class Stock : Security
     {
-        public override void GetFundHistory()
+        public override void GetHistory()
         {
             
+        }
+
+        public override double? GetIncrease(int days)
+        {
+            throw new NotImplementedException();
         }
     }
 }

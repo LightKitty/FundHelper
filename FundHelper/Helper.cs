@@ -37,6 +37,16 @@ namespace FundHelper
             return buf;
         }
 
+        public static string ByresToString(byte[] bytes)
+        {
+            return ByresToString(bytes, Encoding.Default);
+        }
+
+        public static string ByresToString(byte[] bytes, Encoding encoding)
+        {
+            return encoding.GetString(bytes);
+        }
+
         private static long GetJsTimestampNow()
         {
             return GetJsTimestamp(DateTime.Now);

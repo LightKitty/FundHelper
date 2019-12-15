@@ -32,15 +32,15 @@
             this.timerUpdate = new System.Windows.Forms.Timer(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.dataGridViewFund = new System.Windows.Forms.DataGridView();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.dataGridViewStock = new System.Windows.Forms.DataGridView();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.dataGridViewFund = new System.Windows.Forms.DataGridView();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewFund)).BeginInit();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewStock)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewFund)).BeginInit();
             this.SuspendLayout();
             // 
             // timerUpdate
@@ -72,6 +72,20 @@
             this.tabPage1.Text = "基金";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // dataGridViewFund
+            // 
+            this.dataGridViewFund.AllowUserToAddRows = false;
+            this.dataGridViewFund.AllowUserToDeleteRows = false;
+            this.dataGridViewFund.AllowUserToOrderColumns = true;
+            this.dataGridViewFund.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewFund.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridViewFund.Location = new System.Drawing.Point(3, 3);
+            this.dataGridViewFund.Name = "dataGridViewFund";
+            this.dataGridViewFund.ReadOnly = true;
+            this.dataGridViewFund.RowTemplate.Height = 23;
+            this.dataGridViewFund.Size = new System.Drawing.Size(770, 525);
+            this.dataGridViewFund.TabIndex = 0;
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.dataGridViewStock);
@@ -102,26 +116,12 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 26);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(276, 331);
+            this.tabPage3.Size = new System.Drawing.Size(776, 531);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "黄金";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // dataGridViewFund
-            // 
-            this.dataGridViewFund.AllowUserToAddRows = false;
-            this.dataGridViewFund.AllowUserToDeleteRows = false;
-            this.dataGridViewFund.AllowUserToOrderColumns = true;
-            this.dataGridViewFund.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewFund.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewFund.Location = new System.Drawing.Point(3, 3);
-            this.dataGridViewFund.Name = "dataGridViewFund";
-            this.dataGridViewFund.ReadOnly = true;
-            this.dataGridViewFund.RowTemplate.Height = 23;
-            this.dataGridViewFund.Size = new System.Drawing.Size(770, 525);
-            this.dataGridViewFund.TabIndex = 0;
-            // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -130,15 +130,15 @@
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "基金助手";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewFund)).EndInit();
             this.tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewStock)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewFund)).EndInit();
             this.ResumeLayout(false);
 
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace FundHelper
 
         List<Stock> stocks = new List<Stock>(); // 股票列表
         DataTable stockTable = new DataTable("stock"); //股票数据表
+
+        DateTime hisTime = DateTime.Now; //历史计算时间
         #endregion
 
         /// <summary>
@@ -34,6 +37,8 @@ namespace FundHelper
 
             InitFundDataView(); // 初始化基金DataView
             InitStockDataView(); // 初始化股票DataView
+
+
         }
 
         /// <summary>
@@ -62,7 +67,15 @@ namespace FundHelper
         {
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
-            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅(%)" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "day7", DataType = typeof(double), Caption = "7日" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "month1", DataType = typeof(double), Caption = "1月" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "month3", DataType = typeof(double), Caption = "3月" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "year1", DataType = typeof(double), Caption = "1年" });
+            //fundTable.Columns.Add(new DataColumn() { ColumnName = "year2", DataType = typeof(double), Caption = "2年" });
+            //fundTable.Columns.Add(new DataColumn() { ColumnName = "year3", DataType = typeof(double), Caption = "3年" });
             dataGridViewFund.DataSource = fundTable; // 绑定
             for (int i = 0; i < this.dataGridViewFund.Columns.Count; i++)
             { //更改表头显示信息
@@ -71,7 +84,15 @@ namespace FundHelper
             }
             foreach (var fund in funds)
             {
-                fundTable.Rows.Add(fund.Code, fund.Name, fund.realIncrease);
+                double? day1Value = fund.GetIncrease(1);
+                double? day3Value = fund.GetIncrease(3);
+                double? day7Value = fund.GetIncrease(7);
+                double? month1Value = fund.GetIncrease(30);
+                double? month3Value = fund.GetIncrease(90);
+                double? year1Value = fund.GetIncrease(365);
+                //double? year2Value = fund.GetIncrease(730);
+                //double? year3Value = fund.GetIncrease(1095);
+                fundTable.Rows.Add(fund.Code, fund.Name, Math.Round((double)fund.realIncrease, 2), day1Value, day3Value, day7Value, month1Value, month3Value, year1Value);
             }
         }
 
@@ -132,12 +153,14 @@ namespace FundHelper
                 while (line != null)
                 {
                     string[] lineValue = line.Split(' ');
-                    funds.Add(new Fund() { Code=lineValue[0], Name=lineValue[1] });
+                    Fund fund = new Fund() { Code = lineValue[0], Name = lineValue[1] };
+                    fund.GetHistory();
+                    funds.Add(fund);
                     line = sr.ReadLine();
                 }
                 sr.Close();
             }
-            fundHistoryInit(); //获取基金历史信息
+            //fundHistoryInit(); //获取基金历史信息
             fundsRealUpdate(); // 基金实时刷新
         }
 
@@ -146,10 +169,10 @@ namespace FundHelper
         /// </summary>
         private void fundHistoryInit()
         {
-            foreach(var fund in funds)
-            {
-                fund.GetFundHistory();
-            }
+            //foreach(var fund in funds)
+            //{
+            //    fund.GetHistory();
+            //}
         }
 
         /// <summary>
@@ -181,7 +204,7 @@ namespace FundHelper
         {
             foreach (var fund in funds)
             {
-                fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = fund.realIncrease;
+                fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.realIncrease, 2);
             }
         }
 
@@ -222,7 +245,7 @@ namespace FundHelper
         private string[] GetRealTimeValue(string code)
         {
             string requestUrl = string.Format(Common.realTimeUrl, code);
-            string result = Encoding.Default.GetString(Helper.SimpleGet(requestUrl));
+            string result = Helper.ByresToString(Helper.SimpleGet(requestUrl));
             return result.Split(',');
         }
 
@@ -234,14 +257,37 @@ namespace FundHelper
         private void timerUpdate_Tick(object sender, EventArgs e)
         {
             DateTime timeNow = DateTime.Now;
-            if(timeNow.Hour >= 9 && timeNow.Hour <= 16)
-            { // 9-16点刷新
-                fundsRealUpdate();
-                FundTableUpdate();
-                
-                StockRealUpdate();
-                StockTableUpdate();
+            if(timeNow.Hour == 9 && timeNow.Minute == 00 &&timeNow.Day != hisTime.Day)
+            { //重启 重新计算历史
+                Reboot();
             }
+
+            fundsRealUpdate();
+            FundTableUpdate();
+
+            StockRealUpdate();
+            StockTableUpdate();
+        }
+
+        /// <summary>
+        /// 重启程序
+        /// </summary>
+        private void Reboot()
+        {
+            Run(Application.ExecutablePath); //启动程序
+            Close();
+        }
+
+        private static void Run(Object appName)
+        {//启动程序
+            Process ps = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = appName.ToString()
+                }
+            };
+            ps.Start();
         }
     }
 }
