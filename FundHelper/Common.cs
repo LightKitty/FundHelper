@@ -23,5 +23,7 @@ namespace FundHelper
 
         public const string realTimeUrl = "http://hq.sinajs.cn/list={0}"; //实时数据获取
         public const string fundHistoryUrl = "http://finance.sina.com.cn/fund/api/xh5Fund/nav/{0}.js";
+
+        public const string goldCode = "gds_AUTD";
     }
 }

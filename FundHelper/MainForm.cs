@@ -22,6 +22,8 @@ namespace FundHelper
         List<Stock> stocks = new List<Stock>(); // 股票列表
         DataTable stockTable = new DataTable("stock"); //股票数据表
 
+        Gold gold; //黄金
+
         DateTime hisTime = DateTime.Now; //历史计算时间
         #endregion
 
@@ -34,10 +36,11 @@ namespace FundHelper
 
             Initfunds(); //初始化基金
             InitStocks(); //初始化股票
+            InitGold(); //初始化黄金
 
             InitFundDataView(); // 初始化基金DataView
             InitStockDataView(); // 初始化股票DataView
-
+            GoldLableUpdate(); // 初始化黄金文本
 
         }
 
@@ -117,6 +120,14 @@ namespace FundHelper
         }
 
         /// <summary>
+        /// 黄金字段更新
+        /// </summary>
+        private void GoldLableUpdate()
+        {
+            labelGold.Text = gold.realValue.ToString();
+        }
+
+        /// <summary>
         /// 初始化股票
         /// </summary>
         private void InitStocks()
@@ -162,6 +173,24 @@ namespace FundHelper
             }
             //fundHistoryInit(); //获取基金历史信息
             fundsRealUpdate(); // 基金实时刷新
+        }
+
+        /// <summary>
+        /// 初始化黄金
+        /// </summary>
+        private void InitGold()
+        {
+            gold = new Gold() { Code = Common.goldCode, Name = "黄金" };
+            GoldRealUpadte();
+        }
+
+        /// <summary>
+        /// 黄金实时更新
+        /// </summary>
+        private void GoldRealUpadte()
+        {
+            string text = GetRealTimeValue(gold.Code)[0];
+            gold.realValue = Convert.ToDouble(text.Substring(text.IndexOf('\"') + 1));
         }
 
         /// <summary>
@@ -267,6 +296,9 @@ namespace FundHelper
 
             StockRealUpdate();
             StockTableUpdate();
+
+            GoldRealUpadte();
+            GoldLableUpdate();
         }
 
         /// <summary>
