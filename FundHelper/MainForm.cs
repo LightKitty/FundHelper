@@ -95,7 +95,10 @@ namespace FundHelper
                 double? year1Value = fund.GetIncrease(365);
                 //double? year2Value = fund.GetIncrease(730);
                 //double? year3Value = fund.GetIncrease(1095);
-                fundTable.Rows.Add(fund.Code, fund.Name, Math.Round((double)fund.realIncrease, 2), day1Value, day3Value, day7Value, month1Value, month3Value, year1Value);
+                object realIncrease;
+                if (fund.realIncrease != null) realIncrease = Math.Round((double)fund.realIncrease, 2);
+                else realIncrease = null;
+                fundTable.Rows.Add(fund.Code, fund.Name, realIncrease, day1Value, day3Value, day7Value, month1Value, month3Value, year1Value);
             }
         }
 
@@ -233,7 +236,10 @@ namespace FundHelper
         {
             foreach (var fund in funds)
             {
-                fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.realIncrease, 2);
+                if(fund.realIncrease != null)
+                {
+                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.realIncrease, 2);
+                }
             }
         }
 
@@ -252,9 +258,17 @@ namespace FundHelper
         /// 获取今日基金当前涨跌
         /// </summary>
         /// <returns></returns>
-        private double GetFundIncNow(string fundCode)
+        private double? GetFundIncNow(string fundCode)
         {
-            return Convert.ToDouble(GetRealTimeValue(fundCode)[6]);
+            var result = GetRealTimeValue(fundCode);
+            if(result?.Count()>6)
+            {
+                return Convert.ToDouble(result[6]);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
