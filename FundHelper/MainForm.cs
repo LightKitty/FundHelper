@@ -74,8 +74,10 @@ namespace FundHelper
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day7", DataType = typeof(double), Caption = "7日" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "day15", DataType = typeof(double), Caption = "15日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "month1", DataType = typeof(double), Caption = "1月" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "month3", DataType = typeof(double), Caption = "3月" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "month6", DataType = typeof(double), Caption = "6月" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "year1", DataType = typeof(double), Caption = "1年" });
             //fundTable.Columns.Add(new DataColumn() { ColumnName = "year2", DataType = typeof(double), Caption = "2年" });
             //fundTable.Columns.Add(new DataColumn() { ColumnName = "year3", DataType = typeof(double), Caption = "3年" });
@@ -90,15 +92,17 @@ namespace FundHelper
                 double? day1Value = fund.GetIncrease(1);
                 double? day3Value = fund.GetIncrease(3);
                 double? day7Value = fund.GetIncrease(7);
+                double? day15Value = fund.GetIncrease(15);
                 double? month1Value = fund.GetIncrease(30);
-                double? month3Value = fund.GetIncrease(90);
+                double? month3Value = fund.GetIncrease(91);
+                double? month6Value = fund.GetIncrease(183);
                 double? year1Value = fund.GetIncrease(365);
                 //double? year2Value = fund.GetIncrease(730);
                 //double? year3Value = fund.GetIncrease(1095);
                 object realIncrease;
                 if (fund.realIncrease != null) realIncrease = Math.Round((double)fund.realIncrease, 2);
                 else realIncrease = null;
-                fundTable.Rows.Add(fund.Code, fund.Name, realIncrease, day1Value, day3Value, day7Value, month1Value, month3Value, year1Value);
+                fundTable.Rows.Add(fund.Code, fund.Name, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
             }
         }
 
