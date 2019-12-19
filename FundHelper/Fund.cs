@@ -60,7 +60,7 @@ namespace FundHelper
         /// 获取编码简称 如 fu_000001 => 000001
         /// </summary>
         /// <returns></returns>
-        public string GetShortCode()
+        public override string GetShortCode()
         {
             return Code.Substring(3);
         }

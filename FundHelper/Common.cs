@@ -25,5 +25,7 @@ namespace FundHelper
         public const string fundHistoryUrl = "http://finance.sina.com.cn/fund/api/xh5Fund/nav/{0}.js";
 
         public const string goldCode = "gds_AUTD";
+
+        public const string historyDir = "history\\";
     }
 }

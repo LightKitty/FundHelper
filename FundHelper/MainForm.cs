@@ -144,7 +144,9 @@ namespace FundHelper
                 while (line != null)
                 {
                     string[] lineValue = line.Split(' ');
-                    stocks.Add(new Stock() { Code = lineValue[0], Name = lineValue[1] });
+                    Stock stock = new Stock() { Code = lineValue[0], Name = lineValue[1] };
+                    stock.GetHistory();
+                    stocks.Add(stock);
                     //dataGridViewStock.Rows.Add(lineValue[0], lineValue[1]);
                     line = sr.ReadLine();
                 }

@@ -19,5 +19,10 @@ namespace FundHelper
         {
             throw new NotImplementedException();
         }
+
+        public override string GetShortCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

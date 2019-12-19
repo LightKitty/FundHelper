@@ -20,5 +20,6 @@ namespace FundHelper
 
         public abstract void GetHistory();
         public abstract double? GetIncrease(int days);
+        public abstract string GetShortCode();
     }
 }
