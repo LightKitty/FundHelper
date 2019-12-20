@@ -16,6 +16,25 @@ namespace FundHelper
             Dictionary<DateTime, double> datas = new Dictionary<DateTime, double>();
             Fund fund = funds.First(x => x.Code == "fu_001559");
             List<Tuple<DateTime, double>> fundValues = fund.historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
+
+            List<Tuple<DateTime, double, int>> fundPoints = GetExtremePoints(fundValues);
+
+            List<Tuple<DateTime, double, int>> fundPointsFinal = ExtremePointsFiltrate(fundPoints);
+            double inc = 0.0;
+            for (int i = 0; i < fundPointsFinal.Count; i++)
+            {
+                inc += 100 * (fundPointsFinal[i + 1].Item2 - fundPointsFinal[i].Item2) / fundPointsFinal[i].Item2;
+                i++;
+            }
+        }
+
+        /// <summary>
+        /// 获取极值点
+        /// </summary>
+        /// <param name="fundValues"></param>
+        /// <returns></returns>
+        public static List<Tuple<DateTime, double, int>> GetExtremePoints(List<Tuple<DateTime, double>> fundValues)
+        {
             List<Tuple<DateTime, double, int>> fundPoints = new List<Tuple<DateTime, double, int>>(); //极值点
             for (int i = fundValues.FindIndex(x => x.Item1.Equals(new DateTime(2018, 4, 25))); i > 0; i--)
             {
@@ -31,6 +50,16 @@ namespace FundHelper
                     fundPoints.Add(new Tuple<DateTime, double, int>(fundValues[i].Item1, fundValues[i].Item2, -1));
                 }
             }
+            return fundPoints;
+        }
+
+        /// <summary>
+        /// 极值点过滤
+        /// </summary>
+        /// <param name="fundPoints"></param>
+        /// <returns></returns>
+        public static List<Tuple<DateTime, double, int>> ExtremePointsFiltrate(List<Tuple<DateTime, double, int>> fundPoints)
+        {
             List<Tuple<DateTime, double, int>> fundPointsFinal = new List<Tuple<DateTime, double, int>>(); //筛选后的极值点
             for (int i = fundPoints.FindIndex(x => x.Item3 == -1); i < fundPoints.Count; i++)
             { //从第一个极小值开始
@@ -58,12 +87,24 @@ namespace FundHelper
                     }
                 }
             }
-            double inc = 0.0;
-            for (int i = 0; i < fundPointsFinal.Count; i++)
-            {
-                inc += 100 * (fundPointsFinal[i + 1].Item2 - fundPointsFinal[i].Item2) / fundPointsFinal[i].Item2;
-                i++;
-            }
+            return fundPointsFinal;
+        }
+
+        ///
+        public static List<Tuple<DateTime, double, int>> ExtremePointsFiltrate2(List<Tuple<DateTime, double, int>> fundPoints)
+        {
+            List<Tuple<DateTime, double, int>> fundPointsFinal = new List<Tuple<DateTime, double, int>>(); //筛选后的极值点
+
+            int startId = 0;
+            int endId = fundPoints.Count - 1;
+            Caca(fundPoints,startId,endId, fundPointsFinal);
+
+            return fundPointsFinal;
+        }
+
+        private static void Caca(List<Tuple<DateTime, double, int>> fundPoints, int startId, int endId, List<Tuple<DateTime, double, int>> fundPointsFinal)
+        {
+            throw new NotImplementedException();
         }
     }
 }
