@@ -38,6 +38,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,8 +51,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
+    <Compile Include="ExtremePoint.cs" />
     <Compile Include="Gold.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="Linear.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace FundHelper
 {
@@ -43,10 +44,52 @@ namespace FundHelper
             GoldLableUpdate(); // 初始化黄金文本
 
             timerUpdate.Stop();
-            Think.Calculate(funds);
+            List<Tuple<DateTime, double>> needFundValues;
+            List<Tuple<DateTime, double, int>> fundPointsFinal;
+            Tuple<double, double> t1;
+            Tuple<double, double> t2;
+            DateTime startTime = new DateTime(2019, 1, 1);
+            Think.Calculate(startTime, funds, out needFundValues, out fundPointsFinal, out t1, out t2);
+
+            ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
-        
+        private void ChartDraw(DateTime startTime, List<Tuple<DateTime, double>> needFundValues, List<Tuple<DateTime, double, int>> fundPointsFinal, Tuple<double, double> t1, Tuple<double, double> t2)
+        {
+            var chart = chart1.ChartAreas[0];
+            chart.AxisY.Minimum = 0.6;
+            chart.AxisY.Maximum = 1.4;
+            chart1.Series.Add("line1");
+            chart1.Series.Add("line2");
+            chart1.Series.Add("line3");
+            chart1.Series.Add("line4");
+
+            //绘制折线图
+            chart1.Series["line1"].ChartType = SeriesChartType.Line;
+            chart1.Series["line1"].Color = Color.Black;
+            chart1.Series["line2"].ChartType = SeriesChartType.Point;
+            chart1.Series["line2"].Color = Color.Red;
+            chart1.Series["line3"].ChartType = SeriesChartType.Point;
+            chart1.Series["line3"].Color = Color.Blue;
+            chart1.Series["line4"].ChartType = SeriesChartType.Line;
+            chart1.Series["line4"].Color = Color.Green; ;
+            chart1.Series["line4"].Points.AddXY(t1.Item1, t1.Item2);
+            chart1.Series["line4"].Points.AddXY(t2.Item1, t2.Item2);
+            chart1.Series[0].IsVisibleInLegend = false;
+            //fundValues.Reverse();
+            //int firstIndex = fundValues.FindIndex(x => x.Item1 > startTime);
+            for (int i= 0;i< needFundValues.Count;i++)
+            {
+                if (needFundValues[i].Item1 < startTime) continue;
+                chart1.Series["line1"].Points.AddXY(i, needFundValues[i].Item2);
+                var point = fundPointsFinal.FirstOrDefault(x => x.Item1 == needFundValues[i].Item1);
+                if (point != null)
+                {
+                    if (point.Item3 == 1) chart1.Series["line2"].Points.AddXY(i, point.Item2);
+                    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
+                }
+            }
+        }
 
         /// <summary>
         /// 窗体加载后
