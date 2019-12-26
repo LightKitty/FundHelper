@@ -65,40 +65,107 @@ namespace FundHelper
                 i++;
             }
 
-            //分析
-            List<ExtremePoint> extremePoints = new List<ExtremePoint>();
-            for (int i=1; i< needFundValues.Count;i++)
+            double vMax = double.MinValue;
+            double v1Max = 0.0;
+            double v2Max = 0.0;
+            double v3Max = 0.0;
+            double maxMeanWin = 0.0;
+            double maxVarianceWin = 0.0;
+
+            double minMeanWin = 0.0;
+            double minVarianceWin = 0.0;
+
+            double nolMeanWin = 0.0;
+            double nolVarianceWin = 0.0;
+            for (double v1=0.01;v1<1;v1+=0.01)
             {
-                DateTime time = needFundValues[i].Item1;
-                //int indexNow = needFundValues.FindIndex(x => x.Item1 == time);
-                double lastValue = needFundValues[i - 1].Item2;
-                double valueNow= needFundValues[i].Item2;
-                double incOnce = GetInc(lastValue, valueNow);
+                for (double v2 = 0.01; v2 < (1-v1); v2 += 0.01)
+                {
+                    double v3 = 1 - v1 - v2;
+                    if (v3 <= 0.0) continue;
+                    //分析
+                    List<ExtremePoint> extremePoints = new List<ExtremePoint>();
+                    for (int i = 1; i < needFundValues.Count; i++)
+                    {
+                        DateTime time = needFundValues[i].Item1;
+                        //int indexNow = needFundValues.FindIndex(x => x.Item1 == time);
+                        double lastValue = needFundValues[i - 1].Item2;
+                        double valueNow = needFundValues[i].Item2;
+                        double incOnce = valueNow - lastValue; ;
 
-                var last = fundPointsFinal.FindLast(x => x.Item1 < time);
-                if (last == null) continue;
-                //DateTime timeLast = fundPointsFinal[lastIndex].Item1;
-                double lastFinalValue = last.Item2;
-                double incSum= GetInc(lastFinalValue, lastValue);
+                        var last = fundPointsFinal.FindLast(x => x.Item1 < time);
+                        if (last == null) continue;
+                        //DateTime timeLast = fundPointsFinal[lastIndex].Item1;
+                        int lastIndex = needFundValues.FindIndex(x => x.Item1.Equals(last.Item1));
+                        double lastFinalValue = last.Item2;
+                        double incSum = lastValue - lastFinalValue;
 
-                double regress = needFundValues[i].Item2 - EquationCalculate(coefs[1], coefs[0], i);
+                        double regress = needFundValues[i].Item2 - EquationCalculate(coefs[1], coefs[0], i);
 
-                var point = fundPointsFinal.Find(x => x.Item1.Equals(time));
-                var ep = new ExtremePoint() { Time = time, IncOnce = incOnce, IncSum = incSum, Regress = regress, Value = needFundValues[i].Item2, Type = point == null ? 0 : point.Item3 };
-                ep.GetScore();
-                extremePoints.Add(ep);
+                        var point = fundPointsFinal.Find(x => x.Item1.Equals(time));
+                        var ep = new ExtremePoint() { Time = time, IncOnce = incOnce, IncSum = incSum, Regress = regress, Value = needFundValues[i].Item2, Type = point == null ? 0 : point.Item3 };
+                        ep.GetScore(v1, v2, v3);
+                        extremePoints.Add(ep);
+                    }
+                    //List<ExtremePoint> p1s = extremePoints.FindAll(x => x.Type == 1);
+                    //List<ExtremePoint> p2s = extremePoints.FindAll(x => x.Type == -1);
+
+                    List<double> pMaxs = extremePoints.FindAll(x => x.Type == 1).ConvertAll(x => x.Score);
+                    List<double> pMins = extremePoints.FindAll(x => x.Type == -1).ConvertAll(x => x.Score);
+                    List<double> pNols = extremePoints.FindAll(x => x.Type == 0).ConvertAll(x => x.Score);
+
+                    double maxMean = Mean(pMaxs);
+                    double maxVariance = Variance(pMaxs);
+
+                    double minMean = Mean(pMins);
+                    double minVariance = Variance(pMins);
+
+                    double nolMean = Mean(pNols);
+                    double nolVariance = Variance(pNols);
+
+                    if (!(maxMean > nolMean && nolMean > minMean))
+                    {
+                        //不符合条件
+                        continue;
+                    }
+
+                    double value = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
+                    if(value> vMax)
+                    {
+                        vMax = value;
+                        v1Max = v1;
+                        v2Max = v2;
+                        v3Max = v3;
+
+                        maxMeanWin = maxMean;
+                        maxVarianceWin = maxVariance;
+
+                        minMeanWin = minMean;
+                        minVarianceWin = minVariance;
+
+                        nolMeanWin = nolMean;
+                        nolVarianceWin = nolVariance;
+                    }
+                }
             }
-            List<ExtremePoint> p1s = extremePoints.FindAll(x => x.Type == 1);
-            List<ExtremePoint> p2s = extremePoints.FindAll(x => x.Type == -1);
-
-            List<double> pMaxs = extremePoints.FindAll(x => x.Type == 1).ConvertAll(x => x.Score);
-            List<double> pMins = extremePoints.FindAll(x => x.Type == -1).ConvertAll(x => x.Score);
-            List<double> pNol = extremePoints.FindAll(x => x.Type == 0).ConvertAll(x => x.Score);
-
-            pMaxs.Sort();
-            pMins.Sort();
-            pNol.Sort();
             //95%=置信区间计算
+        }
+
+        private static double Variance(List<double> values)
+        {
+            double mean = values.Sum() / values.Count;
+            double sum = 0;
+            for(int i=0; i< values.Count; i++)
+            {
+                sum += Math.Pow(values[i] - mean, 2);
+            }
+            double result = Math.Sqrt(sum / values.Count);
+            return result;
+        }
+
+        private static double Mean(List<double> values)
+        {
+            return values.Sum() / values.Count;
         }
 
         /// <summary>
@@ -123,7 +190,7 @@ namespace FundHelper
         /// <returns></returns>
         private static double GetInc(double lastValue, double valueNow)
         {
-            double inc = (valueNow - lastValue) / lastValue;
+            double inc = (valueNow - lastValue);
             return inc;
         }
 

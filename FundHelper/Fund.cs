@@ -12,6 +12,9 @@ namespace FundHelper
     /// </summary>
     class Fund : Security
     {
+        public DateTime ThinkStartTime { get; set; } //Think起始时间
+        public DateTime ThinkEndTime { get; set; } //Think结束时间
+
         /// <summary>
         /// 获取历史数据
         /// </summary>

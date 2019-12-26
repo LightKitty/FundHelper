@@ -20,7 +20,13 @@ namespace FundHelper
 
         public double GetScore()
         {
-            score = IncOnce + IncSum + Regress;
+            score = (IncOnce + IncSum + Regress)/3;
+            return score;
+        }
+
+        public double GetScore(double v1,double v2,double v3)
+        {
+            score = v1*IncOnce + v2*IncSum + v3*Regress;
             return score;
         }
     }
