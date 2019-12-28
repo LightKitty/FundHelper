@@ -48,7 +48,7 @@ namespace FundHelper
             List<Tuple<DateTime, double, int>> fundPointsFinal;
             Tuple<double, double> t1;
             Tuple<double, double> t2;
-            DateTime startTime = new DateTime(2018, 1, 1);
+            DateTime startTime = new DateTime(2019, 1, 1);
             Think.Calculate(startTime, funds, out needFundValues, out fundPointsFinal, out t1, out t2);
 
             ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);

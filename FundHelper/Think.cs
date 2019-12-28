@@ -17,7 +17,7 @@ namespace FundHelper
             Dictionary<DateTime, double> datas = new Dictionary<DateTime, double>();
             Fund fund = funds.First(x => x.Code == "fu_001549");
             //List<Tuple<DateTime, double>> fundValues = fund.historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
-            List<Tuple<DateTime, double>>  fundValues = fund.historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
+            List<Tuple<DateTime, double>> fundValues = fund.historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
             fundValues.Reverse();
             List<Tuple<DateTime, double, int>> fundPoints = GetExtremePoints(fundValues, startTime);
             int needIndex = fundValues.FindIndex(x => x.Item1 >= startTime) - 1;
@@ -77,6 +77,8 @@ namespace FundHelper
 
             double nolMeanWin = 0.0;
             double nolVarianceWin = 0.0;
+
+            List<FundDayPoint> extremePointsMax;
             for (double v1=0.01;v1<1;v1+=0.01)
             {
                 for (double v2 = 0.01; v2 < (1-v1); v2 += 0.01)
@@ -84,26 +86,27 @@ namespace FundHelper
                     double v3 = 1 - v1 - v2;
                     if (v3 <= 0.0) continue;
                     //分析
-                    List<ExtremePoint> extremePoints = new List<ExtremePoint>();
+                    List<FundDayPoint> extremePoints = new List<FundDayPoint>();
                     for (int i = 1; i < needFundValues.Count; i++)
                     {
                         DateTime time = needFundValues[i].Item1;
                         //int indexNow = needFundValues.FindIndex(x => x.Item1 == time);
                         double lastValue = needFundValues[i - 1].Item2;
                         double valueNow = needFundValues[i].Item2;
-                        double incOnce = valueNow - lastValue; ;
+                        double incOnce = (valueNow - lastValue);
 
                         var last = fundPointsFinal.FindLast(x => x.Item1 < time);
                         if (last == null) continue;
                         //DateTime timeLast = fundPointsFinal[lastIndex].Item1;
                         int lastIndex = needFundValues.FindIndex(x => x.Item1.Equals(last.Item1));
                         double lastFinalValue = last.Item2;
-                        double incSum = lastValue - lastFinalValue;
+                        double incSum = (lastValue - lastFinalValue) ;
 
-                        double regress = needFundValues[i].Item2 - EquationCalculate(coefs[1], coefs[0], i);
+                        double equation = EquationCalculate(coefs[1], coefs[0], i);
+                        double regress = (needFundValues[i].Item2 - equation) ;
 
                         var point = fundPointsFinal.Find(x => x.Item1.Equals(time));
-                        var ep = new ExtremePoint() { Time = time, IncOnce = incOnce, IncSum = incSum, Regress = regress, Value = needFundValues[i].Item2, Type = point == null ? 0 : point.Item3 };
+                        var ep = new FundDayPoint() { Time = time, IncOnce = incOnce, IncSum = incSum, Regress = regress, Value = needFundValues[i].Item2, Type = point == null ? 0 : point.Item3 };
                         ep.GetScore(v1, v2, v3);
                         extremePoints.Add(ep);
                     }
@@ -132,6 +135,7 @@ namespace FundHelper
                     double value = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
                     if(value> vMax)
                     {
+                        extremePointsMax = extremePoints;
                         vMax = value;
                         v1Max = v1;
                         v2Max = v2;

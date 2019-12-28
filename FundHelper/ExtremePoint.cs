@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FundHelper
 {
-    class ExtremePoint
+    class FundDayPoint
     {
         public DateTime Time { get; set; }
         public int Type { get; set; }
@@ -17,12 +17,6 @@ namespace FundHelper
 
         private double score;
         public double Score { get { return score; } }
-
-        public double GetScore()
-        {
-            score = (IncOnce + IncSum + Regress)/3;
-            return score;
-        }
 
         public double GetScore(double v1,double v2,double v3)
         {
