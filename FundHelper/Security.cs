@@ -16,10 +16,16 @@ namespace FundHelper
         public double? realIncrease { get; set; } //实时涨幅
         public double? realValue { get; set; } //实时价值
         public Dictionary<DateTime,double?> historyDic { get; set; }
+        public List<Tuple<DateTime, double>> historyList { get; set; }
         public DateTime lastDay { get; set; }
 
         public abstract void GetHistory();
         public abstract double? GetIncrease(int days);
         public abstract string GetShortCode();
+        public void HistoryDicToList()
+        {
+            historyList = historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
+            historyList.Reverse(); //倒置
+        }
     }
 }

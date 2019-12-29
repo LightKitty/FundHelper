@@ -49,9 +49,40 @@ namespace FundHelper
             Tuple<double, double> t1;
             Tuple<double, double> t2;
             DateTime startTime = new DateTime(2019, 1, 1);
-            Think.Calculate(startTime, funds, out needFundValues, out fundPointsFinal, out t1, out t2);
+            //DateTime endTime = new DateTime(2019, 12, 1);
+            Fund fund = funds.First(x => x.Code == "fu_001549");
+            fund.HistoryDicToList();
+            double money = 150;
+            double chipSum = 0.0;
+            double chipSumMax = double.MinValue;
+            double chipSumMin = double.MaxValue;
+            for (DateTime endTime= new DateTime(2019, 10, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
+            {
+                Console.WriteLine(endTime);
+                if (!fund.historyDic.Keys.Contains(endTime)) continue;
+                Think.Calculate(startTime, endTime, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
+                int index = fund.historyList.FindIndex(x => x.Item1 > endTime);
+                if (index < 0) break;
+                double chip = Think.Predict(fund, fund.historyList[index].Item2);
+                if(chip!=0)
+                {
+                    double cost = chip * fund.historyList[index].Item2;
+                    money -= cost;
+                    chipSum += chip;
+                    if (chipSum > chipSumMax)
+                    {
+                        chipSumMax = chipSum;
+                    }
+                    if (chipSum < chipSumMin)
+                    {
+                        chipSumMin = chipSum;
+                    }
+                }
+                
+            }
+            
 
-            ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
+            //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
         private void ChartDraw(DateTime startTime, List<Tuple<DateTime, double>> needFundValues, List<Tuple<DateTime, double, int>> fundPointsFinal, Tuple<double, double> t1, Tuple<double, double> t2)

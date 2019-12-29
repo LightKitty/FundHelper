@@ -14,7 +14,37 @@ namespace FundHelper
     {
         public DateTime ThinkStartTime { get; set; } //Think起始时间
         public DateTime ThinkEndTime { get; set; } //Think结束时间
+        public double V1 { get; set; } //系数1
+        public double V2 { get; set; } //系数2
+        public double V3 { get; set; } //系数3
+        public List<FundDayPoint> ExtremePoints { get; set; }
+        public double[] Coefs { get; set; }
+        public int CoorZeroIndex { get; set; }
 
+        public double μMax { get; set; }
+        public double σMax { get; set; }
+
+        public double μMin { get; set; }
+        public double σMin { get; set; }
+
+        public double μNol { get; set; }
+        public double σNol { get; set; }
+
+        public double MaxNormalDistribution(double x)
+        {
+            return NormalDistribution(μMax, σMax, x);
+        }
+
+        public double MinNormalDistribution(double x)
+        {
+            return NormalDistribution(μMin, σMin, x);
+        }
+
+        public double NormalDistribution(double μ,double σ,double x)
+        {
+            double y = Math.Pow(Math.E, -Math.Pow((x - μ), 2) / (2 * Math.Pow(σ, 2))) / (Math.Sqrt(2 * Math.PI) * σ);
+            return y;
+        }
         /// <summary>
         /// 获取历史数据
         /// </summary>
