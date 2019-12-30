@@ -288,29 +288,30 @@ namespace FundHelper
         {
             double lastValue = fund.historyList.FindLast(x => x.Item1 <= fund.ThinkEndTime).Item2;
             double incOnce = todayValue - lastValue;
-            var epIndex = fund.ExtremePoints.FindLastIndex(x => x.Type != 0);
+            var epIndexMax = fund.ExtremePoints.FindLastIndex(x => x.Type == 1);
+            var epIndexMin = fund.ExtremePoints.FindLastIndex(x => x.Type == -1);
             double minValue = double.MaxValue;
-            for(int i= epIndex+1;i < fund.ExtremePoints.Count;i++)
+            for(int i= epIndexMax + 1;i < fund.ExtremePoints.Count;i++)
             {
                 if (fund.ExtremePoints[i].Value < minValue) minValue = fund.ExtremePoints[i].Value;
             }
-            double lastSumValue = 0.0;
-            if (minValue < todayValue)
-            {
-                lastSumValue = minValue;
-            }
-            else
-            {
-                lastSumValue = fund.ExtremePoints[epIndex].Value;
+            double lastSumValue1 = minValue;
+            double lastSumValue2 = fund.ExtremePoints[epIndexMax].Value;
+            double lastSumValue3 = fund.ExtremePoints[epIndexMax].Value;
 
-            }
-            double incSum = todayValue - lastSumValue;
+            double incSum1 = todayValue - lastSumValue1;
+            double incSum2 = todayValue - lastSumValue2;
+            double incSum3 = todayValue - lastSumValue3;
             int index = fund.historyList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
             double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index);
             double regress = todayValue - equation;
 
-            double score = fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;
-            if(score>fund.μMax-fund.σMax)
+            double score1 = fund.V1 * incOnce + fund.V2 * incSum1 + fund.V3 * regress;
+            double score2 = fund.V1 * incOnce + fund.V2 * incSum2 + fund.V3 * regress;
+            double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;
+
+            double result = GetFundResult(fund, score1);
+            if (score>fund.μMax-fund.σMax)
             { //卖出
                 double vμ = fund.MaxNormalDistribution(fund.μMax);
                 double vx = fund.MaxNormalDistribution(score);

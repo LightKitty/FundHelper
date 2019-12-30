@@ -50,13 +50,16 @@ namespace FundHelper
             Tuple<double, double> t2;
             DateTime startTime = new DateTime(2019, 1, 1);
             //DateTime endTime = new DateTime(2019, 12, 1);
-            Fund fund = funds.First(x => x.Code == "fu_001549");
+            Fund fund = funds.First(x => x.Code == "fu_005918");
             fund.HistoryDicToList();
             double money = 150;
             double chipSum = 0.0;
             double chipSumMax = double.MinValue;
             double chipSumMin = double.MaxValue;
-            for (DateTime endTime= new DateTime(2019, 10, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
+            //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
+
+            
+            for (DateTime endTime= new DateTime(2019, 11, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
                 if (!fund.historyDic.Keys.Contains(endTime)) continue;
@@ -80,6 +83,7 @@ namespace FundHelper
                 }
                 
             }
+            
             
 
             //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
