@@ -52,13 +52,15 @@ namespace FundHelper
             //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_005918");
             fund.HistoryDicToList();
-            double money = 150;
+            double money = 100;
             double chipSum = 0.0;
             double chipSumMax = double.MinValue;
             double chipSumMin = double.MaxValue;
+            double moneyMax = double.MinValue;
+            double moneyMin = double.MaxValue;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
 
-            
+
             for (DateTime endTime= new DateTime(2019, 11, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
@@ -71,6 +73,14 @@ namespace FundHelper
                 {
                     double cost = chip * fund.historyList[index].Item2;
                     money -= cost;
+                    if (money > moneyMax)
+                    {
+                        moneyMax = money;
+                    }
+                    if(money< moneyMin)
+                    {
+                        moneyMin = money;
+                    }
                     chipSum += chip;
                     if (chipSum > chipSumMax)
                     {

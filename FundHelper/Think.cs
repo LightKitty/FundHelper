@@ -326,7 +326,7 @@ namespace FundHelper
             {
                 return r3;
             }
-            return 0;
+            //return 0;
         }
 
         private static double GetFundResult(Fund fund, double score)
