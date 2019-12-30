@@ -43,6 +43,7 @@ namespace FundHelper
             InitStockDataView(); // 初始化股票DataView
             GoldLableUpdate(); // 初始化黄金文本
 
+            return;
             timerUpdate.Stop();
             List<Tuple<DateTime, double>> needFundValues;
             List<Tuple<DateTime, double, int>> fundPointsFinal;
@@ -51,7 +52,7 @@ namespace FundHelper
             DateTime startTime = new DateTime(2019, 1, 1);
             //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_001549");
-            fund.HistoryDicToList();
+            //fund.HistoryDicToList();
             double money = 100;
             double chipSum = 0.0;
             double chipSumMax = double.MinValue;
@@ -191,9 +192,9 @@ namespace FundHelper
                 double? year1Value = fund.GetIncrease(365);
                 //double? year2Value = fund.GetIncrease(730);
                 //double? year3Value = fund.GetIncrease(1095);
-                object realIncrease;
-                if (fund.realIncrease != null) realIncrease = Math.Round((double)fund.realIncrease, 2);
-                else realIncrease = null;
+                double? realIncrease = Math.Round((double)fund.RealIncrease, 2);
+                //if (fund.realValue != null) realIncrease = Math.Round((double)fund.RealIncrease, 2);
+                //else realIncrease = null;
                 fundTable.Rows.Add(fund.Code, fund.Name, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
             }
         }
@@ -214,7 +215,7 @@ namespace FundHelper
             }
             foreach (var stock in stocks)
             {
-                stockTable.Rows.Add(stock.Code, stock.Name,stock.realIncrease);
+                stockTable.Rows.Add(stock.Code, stock.Name,stock.realValue);
             }
         }
 
@@ -267,6 +268,7 @@ namespace FundHelper
                     string[] lineValue = line.Split(' ');
                     Fund fund = new Fund() { Code = lineValue[0], Name = lineValue[1] };
                     fund.GetHistory();
+                    fund.HistoryDicToList();
                     funds.Add(fund);
                     line = sr.ReadLine();
                 }
@@ -312,7 +314,7 @@ namespace FundHelper
         {
             foreach(Stock stock in stocks)
             {
-                stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault()["RealInc"] = stock.realIncrease;
+                stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault()["RealInc"] = stock.realValue;
             }
         }
 
@@ -323,7 +325,7 @@ namespace FundHelper
         {
             foreach (var stock in stocks)
             {
-                stock.realIncrease = GetStockIncNow(stock.Code);
+                stock.realValue = GetStockIncNow(stock.Code);
             }
         }
 
@@ -334,9 +336,9 @@ namespace FundHelper
         {
             foreach (var fund in funds)
             {
-                if(fund.realIncrease != null)
+                if(fund.realValue != null)
                 {
-                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.realIncrease, 2);
+                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
                 }
             }
         }
@@ -348,7 +350,24 @@ namespace FundHelper
         {
             foreach (var fund in funds)
             {
-                fund.realIncrease = GetFundIncNow(fund.Code);
+                fund.realValue = GetFundValueNow(fund.Code);
+            }
+        }
+
+        /// <summary>
+        /// 获取今日基金当前价值
+        /// </summary>
+        /// <returns></returns>
+        private double? GetFundValueNow(string fundCode)
+        {
+            var result = GetRealTimeValue(fundCode);
+            if (result?.Count() > 6)
+            {
+                return Convert.ToDouble(result[3]);
+            }
+            else
+            {
+                return null;
             }
         }
 

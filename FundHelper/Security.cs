@@ -13,8 +13,15 @@ namespace FundHelper
     {
         public string Code { get; set; } // 基金编码
         public string Name { get; set; } //基金名称
-        public double? realIncrease { get; set; } //实时涨幅
         public double? realValue { get; set; } //实时价值
+        public double? RealIncrease
+        {
+            get
+            {
+                return (realValue - historyList.Last().Item2) / historyList.Last().Item2;
+            }
+        }
+        //public double? realValue { get; set; } //实时
         public Dictionary<DateTime,double?> historyDic { get; set; }
         public List<Tuple<DateTime, double>> historyList { get; set; }
         public DateTime lastDay { get; set; }
