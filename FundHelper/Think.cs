@@ -310,8 +310,22 @@ namespace FundHelper
             double score2 = fund.V1 * incOnce + fund.V2 * incSum2 + fund.V3 * regress;
             double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;
 
-            double result = GetFundResult(fund, score1);
-            
+            double r1 = GetFundResult(fund, score1);
+            double r2 = GetFundResult(fund, score2);
+            double r3 = GetFundResult(fund, score3);
+
+            if(Math.Abs(r1)> Math.Abs(r2)&& Math.Abs(r1)> Math.Abs(r3))
+            {
+                return r1;
+            }
+            else if(Math.Abs(r2)> Math.Abs(r3))
+            {
+                return r2;
+            }
+            else
+            {
+                return r3;
+            }
             return 0;
         }
 
