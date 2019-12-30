@@ -311,25 +311,32 @@ namespace FundHelper
             double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;
 
             double result = GetFundResult(fund, score1);
-            if (score>fund.μMax-fund.σMax)
+            
+            return 0;
+        }
+
+        private static double GetFundResult(Fund fund, double score)
+        {
+            double result = 0;
+            if (score > fund.μMax - fund.σMax)
             { //卖出
                 double vμ = fund.MaxNormalDistribution(fund.μMax);
                 double vx = fund.MaxNormalDistribution(score);
                 double vσ = fund.MaxNormalDistribution(fund.μMax - fund.σMax);
-                double result = score > fund.μMax ? 2 * (vμ - vσ) - (vx - vσ) : vx - vσ;
+                result = score > fund.μMax ? 2 * (vμ - vσ) - (vx - vσ) : vx - vσ;
                 return -result; //卖出为负
             }
-            else if(score<fund.μMin+fund.σMin)
+            else if (score < fund.μMin + fund.σMin)
             { //买入
                 double vμ = fund.MinNormalDistribution(fund.μMin);
                 double vx = fund.MinNormalDistribution(score);
                 double vσ = fund.MinNormalDistribution(fund.μMin - fund.σMin);
-                double result = score < fund.μMin ? 2 * (vμ - vσ) - (vx - vσ) : vx - vσ;
+                result = score < fund.μMin ? 2 * (vμ - vσ) - (vx - vσ) : vx - vσ;
                 return result; //卖出为负
             }
-            return 0;
+            return result;
         }
-        
+
 
         #region 废弃
         /*
