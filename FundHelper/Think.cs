@@ -158,6 +158,8 @@ namespace FundHelper
             fund.σMax = maxVarianceWin;
             fund.μMin = minMeanWin;
             fund.σMin = minVarianceWin;
+            fund.μNol = nolMeanWin;
+            fund.σNol = nolVarianceWin;
         }
 
         private static double Variance(List<double> values)
@@ -297,15 +299,32 @@ namespace FundHelper
             }
             double lastSumValue1 = minValue;
             double lastSumValue2 = fund.ExtremePoints[epIndexMax].Value;
-            double lastSumValue3 = fund.ExtremePoints[epIndexMax].Value;
+            double lastSumValue3 = fund.ExtremePoints[epIndexMin].Value;
 
             double incSum1 = todayValue - lastSumValue1;
             double incSum2 = todayValue - lastSumValue2;
             double incSum3 = todayValue - lastSumValue3;
+            double incSum = 0.0;
+            if (Math.Abs(incSum1) > Math.Abs(incSum2) && Math.Abs(incSum1) > Math.Abs(incSum3))
+            {
+                incSum = incSum1;
+            }
+            else if (Math.Abs(incSum2) > Math.Abs(incSum3))
+            {
+                incSum = incSum2;
+            }
+            else
+            {
+                incSum = incSum3;
+            }
             int index = fund.historyList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
             double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index);
             double regress = todayValue - equation;
 
+            double score= fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;
+            return GetFundResult(fund, score);
+
+            //以下版本
             double score1 = fund.V1 * incOnce + fund.V2 * incSum1 + fund.V3 * regress;
             double score2 = fund.V1 * incOnce + fund.V2 * incSum2 + fund.V3 * regress;
             double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;

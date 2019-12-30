@@ -50,7 +50,7 @@ namespace FundHelper
             Tuple<double, double> t2;
             DateTime startTime = new DateTime(2019, 1, 1);
             //DateTime endTime = new DateTime(2019, 12, 1);
-            Fund fund = funds.First(x => x.Code == "fu_005918");
+            Fund fund = funds.First(x => x.Code == "fu_001549");
             fund.HistoryDicToList();
             double money = 100;
             double chipSum = 0.0;
