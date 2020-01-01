@@ -54,7 +54,7 @@ namespace FundHelper
             DateTime startTime = new DateTime(2019, 1, 1);
             //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_001559");
-            fund.HistoryDicToList();
+            fund.CreateHistoryList();
             double money = 100;
             double chipSum = 0.0;
             double chipSumMax = double.MinValue;
@@ -66,14 +66,14 @@ namespace FundHelper
             for (DateTime endTime= new DateTime(2019, 11, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
-                if (!fund.historyDic.Keys.Contains(endTime)) continue;
+                if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
                 Think.Calculate(startTime, endTime, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
-                int index = fund.historyList.FindIndex(x => x.Item1 > endTime);
+                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                double chip = Think.Predict(fund, fund.historyList[index].Item2);
+                double chip = Think.Predict(fund, fund.HistoryList[index].Item2);
                 if(chip!=0)
                 {
-                    double cost = chip * fund.historyList[index].Item2;
+                    double cost = chip * fund.HistoryList[index].Item2;
                     money -= cost;
                     if (money > moneyMax)
                     {
@@ -202,7 +202,7 @@ namespace FundHelper
                 //double? year2Value = fund.GetIncrease(730);
                 //double? year3Value = fund.GetIncrease(1095);
                 object realIncrease;
-                if (fund.realIncrease != null) realIncrease = Math.Round((double)fund.realIncrease, 2);
+                if (fund.RealIncrease != null) realIncrease = Math.Round((double)fund.RealIncrease, 2);
                 else realIncrease = null;
                 fundTable.Rows.Add(fund.Code, fund.Name, null, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
             }
@@ -224,7 +224,7 @@ namespace FundHelper
             }
             foreach (var stock in stocks)
             {
-                stockTable.Rows.Add(stock.Code, stock.Name,stock.realIncrease);
+                stockTable.Rows.Add(stock.Code, stock.Name,stock.RealIncrease);
             }
         }
 
@@ -233,7 +233,7 @@ namespace FundHelper
         /// </summary>
         private void GoldLableUpdate()
         {
-            labelGold.Text = gold.realValue.ToString();
+            labelGold.Text = gold.RealValue.ToString();
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace FundHelper
                     string[] lineValue = line.Split(' ');
                     Fund fund = new Fund() { Code = lineValue[0], Name = lineValue[1] };
                     fund.GetHistory();
-                    fund.HistoryDicToList();
+                    fund.CreateHistoryList();
                     funds.Add(fund);
                     line = sr.ReadLine();
                 }
@@ -302,7 +302,7 @@ namespace FundHelper
         private void GoldRealUpadte()
         {
             string text = GetRealTimeValue(gold.Code)[0];
-            gold.realValue = Convert.ToDouble(text.Substring(text.IndexOf('\"') + 1));
+            gold.RealValue = Convert.ToDouble(text.Substring(text.IndexOf('\"') + 1));
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace FundHelper
         {
             foreach(Stock stock in stocks)
             {
-                stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault()["RealInc"] = stock.realIncrease;
+                stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault()["RealInc"] = stock.RealIncrease;
             }
         }
 
@@ -334,7 +334,7 @@ namespace FundHelper
         {
             foreach (var stock in stocks)
             {
-                stock.realIncrease = GetStockIncNow(stock.Code);
+                stock.RealIncrease = GetStockIncNow(stock.Code);
             }
         }
 
@@ -345,9 +345,9 @@ namespace FundHelper
         {
             foreach (var fund in funds)
             {
-                if(fund.realIncrease != null)
+                if(fund.RealIncrease != null)
                 {
-                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.realIncrease, 2);
+                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
                 }
             }
         }
@@ -363,8 +363,8 @@ namespace FundHelper
                 double realInc;
                 if(GetFundIncNow(fund.Code, out realVal, out realInc))
                 {
-                    fund.realValue = realVal;
-                    fund.realIncrease = realInc;
+                    fund.RealValue = realVal;
+                    fund.RealIncrease = realInc;
                 }
             }
         }
@@ -441,8 +441,8 @@ namespace FundHelper
         {
             foreach(Fund fund in funds)
             {
-                double chip = Think.Predict(fund, (double)fund.realValue);
-                double cost = chip * (double)fund.realValue * 100;
+                double chip = Think.Predict(fund, (double)fund.RealValue);
+                double cost = chip * (double)fund.RealValue * 100;
                 fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["Buy"] = Math.Round(cost, 0);
             }
         }

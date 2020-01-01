@@ -18,7 +18,7 @@ namespace FundHelper
             string path = Common.historyDir + GetShortCode() + ".csv";
             if(File.Exists(path))
             {
-                historyDic = new Dictionary<DateTime, double?>();
+                HistoryDic = new Dictionary<DateTime, double?>();
                 StreamReader sr = new StreamReader(path, Encoding.Default);
                 sr.ReadLine(); //标题
                 string line = sr.ReadLine();
@@ -27,7 +27,7 @@ namespace FundHelper
                     string[] lineValues = line.Split(',');
                     DateTime time = Convert.ToDateTime(lineValues[0]);
                     double value = Convert.ToDouble(lineValues[3]);
-                    historyDic.Add(time, value);
+                    HistoryDic.Add(time, value);
 
                     line = sr.ReadLine();
                 }

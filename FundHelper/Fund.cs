@@ -12,6 +12,8 @@ namespace FundHelper
     /// </summary>
     class Fund : Security
     {
+        public int ThinkStartIndex { get; set; } //Think起始位置
+        public int ThinkEndIndex { get; set; } //Think结束位置
         public DateTime ThinkStartTime { get; set; } //Think起始时间
         public DateTime ThinkEndTime { get; set; } //Think结束时间
         public double V1 { get; set; } //系数1
@@ -55,15 +57,15 @@ namespace FundHelper
             JObject jo = JObject.Parse(getResult.Substring(0, getResult.IndexOf(')')).Substring(getResult.IndexOf('{')));
             string hisData = jo["data"].ToString();
             string[] dayDatas = hisData.Split('#');
-            historyDic = new Dictionary<DateTime, double?>();
+            HistoryDic = new Dictionary<DateTime, double?>();
             foreach (string dayData in dayDatas)
             {
                 string[] dayVales = dayData.Split(',');
                 DateTime time = DateTime.ParseExact(dayVales[0], "yyyyMMdd", System.Globalization.CultureInfo.CurrentCulture);
                 string value = dayVales[1];
-                historyDic.Add(time, Convert.ToDouble(value));
+                HistoryDic.Add(time, Convert.ToDouble(value));
             }
-            lastDay = historyDic.Keys.FirstOrDefault();
+            LastDay = HistoryDic.Keys.FirstOrDefault();
         }
 
         /// <summary>
@@ -73,18 +75,18 @@ namespace FundHelper
         /// <returns></returns>
         public override double? GetIncrease(int days)
         {
-            DateTime time = lastDay.AddDays(-days);
+            DateTime time = LastDay.AddDays(-days);
             DateTime realTime = time;
             int addDays = -1;
-            while(!historyDic.Keys.Contains(realTime))
+            while(!HistoryDic.Keys.Contains(realTime))
             {
                 realTime = time.AddDays(addDays);
                 addDays = addDays < 0 ? -addDays : -addDays - 1;
                 if (addDays > 2) return null; //超过范围 返回空
             }
-            double? value = historyDic[lastDay];
-            double? hisValue = historyDic[realTime];
-            if (days < 5) hisValue = historyDic.Values.Take(days + 1).Last(); // 五天内按连续天数取
+            double? value = HistoryDic[LastDay];
+            double? hisValue = HistoryDic[realTime];
+            if (days < 5) hisValue = HistoryDic.Values.Take(days + 1).Last(); // 五天内按连续天数取
             double? result = 100 * (value - hisValue) / hisValue;
             return Math.Round((double)result, 2);
         }
