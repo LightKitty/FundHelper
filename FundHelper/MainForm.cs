@@ -43,6 +43,9 @@ namespace FundHelper
             InitStockDataView(); // 初始化股票DataView
             GoldLableUpdate(); // 初始化黄金文本
 
+            FundsCalculate(); //基金计算
+
+            return;
             timerUpdate.Stop();
             List<Tuple<DateTime, double>> needFundValues;
             List<Tuple<DateTime, double, int>> fundPointsFinal;
@@ -50,7 +53,7 @@ namespace FundHelper
             Tuple<double, double> t2;
             DateTime startTime = new DateTime(2019, 1, 1);
             //DateTime endTime = new DateTime(2019, 12, 1);
-            Fund fund = funds.First(x => x.Code == "fu_005918");
+            Fund fund = funds.First(x => x.Code == "fu_001559");
             fund.HistoryDicToList();
             double money = 100;
             double chipSum = 0.0;
@@ -60,8 +63,7 @@ namespace FundHelper
             double moneyMin = double.MaxValue;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
 
-            return;
-            for (DateTime endTime= new DateTime(2019, 12, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
+            for (DateTime endTime= new DateTime(2019, 11, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
                 if (!fund.historyDic.Keys.Contains(endTime)) continue;
@@ -94,9 +96,16 @@ namespace FundHelper
                 
             }
             
-            
-
             //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
+        }
+
+        private void FundsCalculate()
+        {
+            foreach(Fund fund in funds)
+            {
+                DateTime startTime = new DateTime(2019, 1, 1);
+                Think.Calculate(startTime, fund);
+            }
         }
 
         private void ChartDraw(DateTime startTime, List<Tuple<DateTime, double>> needFundValues, List<Tuple<DateTime, double, int>> fundPointsFinal, Tuple<double, double> t1, Tuple<double, double> t2)
@@ -162,6 +171,7 @@ namespace FundHelper
         {
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "Buy", DataType = typeof(double), Caption = "买入" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
@@ -194,7 +204,7 @@ namespace FundHelper
                 object realIncrease;
                 if (fund.realIncrease != null) realIncrease = Math.Round((double)fund.realIncrease, 2);
                 else realIncrease = null;
-                fundTable.Rows.Add(fund.Code, fund.Name, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
+                fundTable.Rows.Add(fund.Code, fund.Name, null, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
             }
         }
 
@@ -267,6 +277,7 @@ namespace FundHelper
                     string[] lineValue = line.Split(' ');
                     Fund fund = new Fund() { Code = lineValue[0], Name = lineValue[1] };
                     fund.GetHistory();
+                    fund.HistoryDicToList();
                     funds.Add(fund);
                     line = sr.ReadLine();
                 }
@@ -406,7 +417,7 @@ namespace FundHelper
         private void timerUpdate_Tick(object sender, EventArgs e)
         {
             DateTime timeNow = DateTime.Now;
-            if(timeNow.Hour == 9 && timeNow.Minute == 00 &&timeNow.Day != hisTime.Day)
+            if(timeNow.Hour == 6 && timeNow.Minute == 00 &&timeNow.Day != hisTime.Day)
             { //重启 重新计算历史
                 Reboot();
             }
@@ -414,11 +425,26 @@ namespace FundHelper
             fundsRealUpdate();
             FundTableUpdate();
 
+            if(timeNow.Hour==14)
+            {
+                FundsPredict();
+            }
+
             StockRealUpdate();
             StockTableUpdate();
 
             GoldRealUpadte();
             GoldLableUpdate();
+        }
+
+        private void FundsPredict()
+        {
+            foreach(Fund fund in funds)
+            {
+                double chip = Think.Predict(fund, (double)fund.realValue);
+                double cost = chip * (double)fund.realValue * 100;
+                fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["Buy"] = Math.Round(cost, 0);
+            }
         }
 
         /// <summary>

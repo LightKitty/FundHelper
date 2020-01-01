@@ -8,6 +8,17 @@ namespace FundHelper
 {
     static class Think
     {
+        public static void Calculate(DateTime startTime, Fund fund)
+        {
+            if (startTime <= fund.historyList.First().Item1) startTime = fund.historyList[3].Item1;
+            Console.WriteLine(fund.Name);
+            DateTime endTime = fund.historyList.Last().Item1;
+            List<Tuple<DateTime, double>> needFundValues;
+            List<Tuple<DateTime, double, int>> fundPointsFinal;
+            Tuple<double, double> t1;
+            Tuple<double, double> t2;
+            Calculate(startTime, endTime, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
+        }
         /// <summary>
         /// 
         /// </summary>
