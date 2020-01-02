@@ -10,26 +10,21 @@ namespace FundHelper
     {
         public static void Calculate(DateTime startTime, Fund fund)
         {
-            if (startTime <= fund.HistoryList.First().Item1) startTime = fund.HistoryList[3].Item1;
-            Console.WriteLine(fund.Name);
+            //if (startTime <= fund.HistoryList.First().Item1) startTime = fund.HistoryList[3].Item1;
             DateTime endTime = fund.HistoryList.Last().Item1;
-            List<Tuple<DateTime, double>> needFundValues;
-            List<Tuple<DateTime, double, int>> fundPointsFinal;
-            Tuple<double, double> t1;
-            Tuple<double, double> t2;
-            Calculate(startTime, endTime, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
+            Calculate(startTime, endTime, fund);
         }
         /// <summary>
         /// 
         /// </summary>
-        public static void Calculate(DateTime startTime, DateTime endTime, Fund fund, out List<Tuple<DateTime, double>> needFundValues, out List<Tuple<DateTime, double, int>> fundPointsFinal, out Tuple<double, double> t1, out Tuple<double, double> t2)
+        public static void Calculate(DateTime startTime, DateTime endTime, Fund fund) //, out List<Tuple<DateTime, double>> needFundValues, out List<Tuple<DateTime, double, int>> fundPointsFinal, out Tuple<double, double> t1, out Tuple<double, double> t2
         {
             //fund.ThinkStartTime = startTime;
             //fund.ThinkEndTime = endTime;
             int startIndex = fund.HistoryList.FindIndex(x => x.Item1 >= startTime);
             int endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= endTime) + 1;
             List<Tuple<DateTime,double>> needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
-            int length = fund.ThinkEndIndex - fund.ThinkStartIndex;
+            int length = endIndex - startIndex;
             // = new DateTime(2019, 1, 1);
             //Dictionary<DateTime, double> datas = new Dictionary<DateTime, double>();
             //List<Tuple<DateTime, double>> fundValues = fund.historyDic.ToList().ConvertAll(x => new Tuple<DateTime, double>(x.Key, (double)x.Value));
@@ -193,6 +188,9 @@ namespace FundHelper
             fund.σNol = nolVarianceWin;
             fund.μMin = minMeanWin;
             fund.σMin = minVarianceWin;
+            fund.ThinkStartIndex = startIndex;
+            fund.ThinkEndIndex = endIndex;
+            fund.incFlags = incFinalFlags;
         }
 
         private static double GetScore(double v1, double v2, double v3, double x1, double x2, double x3)
@@ -315,7 +313,7 @@ namespace FundHelper
                         i = j + 1;
                         break;
                     }
-                    else if(list[i].Item2>maxValue)
+                    else if(maxValue > 0 && list[i].Item2>maxValue)
                     { //不符合条件 极大值更大
                         result[maxIndex] = 0;
                         result[j] = 1;
@@ -361,24 +359,54 @@ namespace FundHelper
             //return fundPointsFinal;
         }
 
+        public static double Predict(Fund fund)
+        {
+            return Predict(fund, (double)fund.RealValue);
+        }
+
         public static double Predict(Fund fund, double todayValue)
         {
-            double lastValue = fund.HistoryList.FindLast(x => x.Item1 <= fund.ThinkEndTime).Item2;
-            double incOnce = todayValue - lastValue;
-            var epIndexMax = fund.ExtremePoints.FindLastIndex(x => x.Type == 1);
-            var epIndexMin = fund.ExtremePoints.FindLastIndex(x => x.Type == -1);
+            //double lastValue = fund.HistoryList.FindLast(x => x.Item1 <= fund.ThinkEndTime).Item2;
+            double incOnce = todayValue - fund.HistoryList[fund.ThinkEndIndex - 1].Item2;
             double minValue = double.MaxValue;
-            for(int i= epIndexMax + 1;i < fund.ExtremePoints.Count;i++)
+            double lastMaxValue = -1;
+            double lastMinValue = -1;
+            for(int i=fund.ThinkEndIndex-1;i>=fund.ThinkStartIndex;i--)
             {
-                if (fund.ExtremePoints[i].Value < minValue) minValue = fund.ExtremePoints[i].Value;
+                if(lastMaxValue<0)
+                {
+                    if(fund.incFlags[i]==1)
+                    { //找到极大值
+                        lastMaxValue = fund.HistoryList[i].Item2;
+                    }
+                    if(fund.HistoryList[i].Item2<minValue)
+                    { //记录最小值
+                        minValue = fund.HistoryList[i].Item2;
+                    }
+                }
+                else if(lastMinValue<0)
+                {
+                    if(fund.incFlags[i]==-1)
+                    {
+                        lastMinValue= fund.HistoryList[i].Item2;
+                        break; //寻找结束
+                    }
+                }
             }
-            double lastSumValue1 = minValue;
-            double lastSumValue2 = fund.ExtremePoints[epIndexMax].Value;
-            double lastSumValue3 = fund.ExtremePoints[epIndexMin].Value;
+            //var epIndexMax = fund.ExtremePoints.FindLastIndex(x => x.Type == 1);
+            //var epIndexMin = fund.ExtremePoints.FindLastIndex(x => x.Type == -1);
+            //double minValue = double.MaxValue;
+            //for(int i= epIndexMax + 1;i < fund.ExtremePoints.Count;i++)
+            //{
+            //    if (fund.ExtremePoints[i].Value < minValue) minValue = fund.ExtremePoints[i].Value;
+            //}
+            //double lastSumValue1 = minValue;
+            //double lastSumValue2 = fund.ExtremePoints[epIndexMax].Value;
+            //double lastSumValue3 = fund.ExtremePoints[epIndexMin].Value;
 
-            double incSum1 = todayValue - lastSumValue1;
-            double incSum2 = todayValue - lastSumValue2;
-            double incSum3 = todayValue - lastSumValue3;
+            double incSum1 = todayValue - minValue;
+            double incSum2 = todayValue - lastMaxValue;
+            double incSum3 = todayValue - lastMinValue;
             double incSum = 0.0;
             if (Math.Abs(incSum1) > Math.Abs(incSum2) && Math.Abs(incSum1) > Math.Abs(incSum3))
             {
@@ -392,34 +420,34 @@ namespace FundHelper
             {
                 incSum = incSum3;
             }
-            int index = fund.HistoryList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
-            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index);
+            //int index = fund.HistoryList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
+            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], fund.ThinkEndIndex);
             double regress = todayValue - equation;
 
-            double score= fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;
+            double score = GetScore(fund.V1, fund.V2, fund.V3, incOnce, incSum, regress); //fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;
             return GetFundResult(fund, score);
 
             //以下版本
-            double score1 = fund.V1 * incOnce + fund.V2 * incSum1 + fund.V3 * regress;
-            double score2 = fund.V1 * incOnce + fund.V2 * incSum2 + fund.V3 * regress;
-            double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;
+            //double score1 = fund.V1 * incOnce + fund.V2 * incSum1 + fund.V3 * regress;
+            //double score2 = fund.V1 * incOnce + fund.V2 * incSum2 + fund.V3 * regress;
+            //double score3 = fund.V1 * incOnce + fund.V2 * incSum3 + fund.V3 * regress;
 
-            double r1 = GetFundResult(fund, score1);
-            double r2 = GetFundResult(fund, score2);
-            double r3 = GetFundResult(fund, score3);
+            //double r1 = GetFundResult(fund, score1);
+            //double r2 = GetFundResult(fund, score2);
+            //double r3 = GetFundResult(fund, score3);
 
-            if(Math.Abs(r1)> Math.Abs(r2)&& Math.Abs(r1)> Math.Abs(r3))
-            {
-                return r1;
-            }
-            else if(Math.Abs(r2)> Math.Abs(r3))
-            {
-                return r2;
-            }
-            else
-            {
-                return r3;
-            }
+            //if(Math.Abs(r1)> Math.Abs(r2)&& Math.Abs(r1)> Math.Abs(r3))
+            //{
+            //    return r1;
+            //}
+            //else if(Math.Abs(r2)> Math.Abs(r3))
+            //{
+            //    return r2;
+            //}
+            //else
+            //{
+            //    return r3;
+            //}
             //return 0;
         }
 
