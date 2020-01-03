@@ -43,7 +43,54 @@ namespace FundHelper
             InitStockDataView(); // 初始化股票DataView
             GoldLableUpdate(); // 初始化黄金文本
 
-            FundsCalculate(); //基金计算
+            //FundsCalculate(); //基金计算
+
+
+            Fund fund = funds.Find(x => x.Code == "fu_005918");
+            DateTime startTime = new DateTime(2019, 1, 1);
+            List<Tuple<DateTime, double>> needList;
+            Think.Calculate(startTime, fund);
+
+            var chart = chart1.ChartAreas[0];
+            chart.AxisY.Minimum = 0.6;
+            chart.AxisY.Maximum = 1.4;
+            chart1.Series.Add("line1");
+            chart1.Series.Add("line2");
+            chart1.Series.Add("line3");
+            //chart1.Series.Add("line4");
+
+            //绘制折线图
+            chart1.Series["line1"].ChartType = SeriesChartType.Line;
+            chart1.Series["line1"].Color = Color.Black;
+            chart1.Series["line2"].ChartType = SeriesChartType.Point;
+            chart1.Series["line2"].Color = Color.Red;
+            chart1.Series["line3"].ChartType = SeriesChartType.Point;
+            chart1.Series["line3"].Color = Color.Blue;
+            //chart1.Series["line4"].ChartType = SeriesChartType.Line;
+            //chart1.Series["line4"].Color = Color.Green; ;
+            //chart1.Series["line4"].Points.AddXY(t1.Item1, t1.Item2);
+            //chart1.Series["line4"].Points.AddXY(t2.Item1, t2.Item2);
+            chart1.Series[0].IsVisibleInLegend = false;
+            //fundValues.Reverse();
+            //int firstIndex = fundValues.FindIndex(x => x.Item1 > startTime);
+            for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
+            {
+                chart1.Series["line1"].Points.AddXY(i- fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                if(fund.incFlags[i - fund.ThinkStartIndex] == 1)
+                {
+                    chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                }
+                else if (fund.incFlags[i - fund.ThinkStartIndex] == -1)
+                {
+                    chart1.Series["line3"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                }
+                //if (point != null)
+                //{
+                //    if (point.Item3 == 1) chart1.Series["line2"].Points.AddXY(i, point.Item2);
+                //    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
+                //}
+            }
+
 
             //return;
             //timerUpdate.Stop();
@@ -93,15 +140,15 @@ namespace FundHelper
             //            chipSumMin = chipSum;
             //        }
             //    }
-                
+
             //}
-            
+
             //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
         private void FundsCalculate()
         {
-            foreach(Fund fund in funds)
+            foreach (Fund fund in funds)
             {
                 DateTime startTime = new DateTime(2019, 1, 1);
                 Think.Calculate(startTime, fund);
@@ -139,8 +186,10 @@ namespace FundHelper
                 var point = fundPointsFinal.FirstOrDefault(x => x.Item1 == needFundValues[i].Item1);
                 if (point != null)
                 {
-                    if (point.Item3 == 1) chart1.Series["line2"].Points.AddXY(i, point.Item2);
-                    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
+                    if (point.Item3 == 1)
+                        chart1.Series["line2"].Points.AddXY(i, point.Item2);
+                    else if (point.Item3 == -1)
+                        chart1.Series["line3"].Points.AddXY(i, point.Item2);
                 }
             }
         }

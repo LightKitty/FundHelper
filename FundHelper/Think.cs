@@ -23,7 +23,7 @@ namespace FundHelper
             //fund.ThinkEndTime = endTime;
             int startIndex = fund.HistoryList.FindIndex(x => x.Item1 >= startTime);
             int endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= endTime) + 1;
-            List<Tuple<DateTime,double>> needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
+            var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
             int length = endIndex - startIndex;
             // = new DateTime(2019, 1, 1);
             //Dictionary<DateTime, double> datas = new Dictionary<DateTime, double>();
@@ -297,30 +297,39 @@ namespace FundHelper
             for(int i=0; i< incFlags.Length; i++)
             { //第一层寻找极小值
                 if (incFlags[i] != -1) continue;
-                if(minIndex<0|| list[i].Item2 < minValue)
-                {
-                    minIndex = i;
-                    minValue = list[i].Item2;
-                }
-                for(int j=i+1;j< incFlags.Length;j++)
+                minIndex = i;
+                minValue = list[i].Item2;
+                for (int j=i+1;j< incFlags.Length;j++)
                 { //第二层寻找极大值
-                    if(j-i>5)
-                    { //符合条件
-                        result[minIndex] = -1;
-                        result[maxIndex] = 1;
-                        maxIndex = j;
-                        maxValue = list[j].Item2;
-                        i = j + 1;
-                        break;
+                    if(incFlags[j]==1)
+                    { //极大值
+                        if (j - i > 5)
+                        { //符合条件
+                            result[minIndex] = -1;
+                            maxIndex = j;
+                            maxValue = list[j].Item2;
+                            result[j] = 1;
+                            i = j;
+                            break;
+                        }
+                        else if (maxValue > 0 && list[j].Item2 > maxValue)
+                        { //不符合条件 极大值更大
+                            result[maxIndex] = 0;
+                            maxIndex = j;
+                            result[j] = 1;
+                            maxValue = list[j].Item2;
+                            i = j;
+                            break;
+                        }
                     }
-                    else if(maxValue > 0 && list[i].Item2>maxValue)
-                    { //不符合条件 极大值更大
-                        result[maxIndex] = 0;
-                        result[j] = 1;
-                        maxIndex = j;
-                        maxValue = list[j].Item2;
-                        i = j + 1;
-                        break;
+                    else if(incFlags[j] == -1)
+                    { //极小值
+                        if (minValue > 0 && list[j].Item2 < minValue)
+                        { //不符合条件 极小值更小
+                            i = j;
+                            minIndex = j;
+                            minValue = list[j].Item2;
+                        }
                     }
                 }
             }
