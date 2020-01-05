@@ -141,13 +141,35 @@ namespace FundHelper
                     //List<ExtremePoint> p1s = extremePoints.FindAll(x => x.Type == 1);
                     //List<ExtremePoint> p2s = extremePoints.FindAll(x => x.Type == -1);
 
-
+                    //去掉偶然值
+                    double rate = 0.025;
+                    maxScores.Sort();
+                    int r1 = (int)Math.Ceiling(maxScores.Count * rate);
+                    for(int i=0;i<r1;i++)
+                    {
+                        maxScores.RemoveAt(maxScores.Count - 1);
+                        maxScores.RemoveAt(0);
+                    }
                     double maxMean = Mean(maxScores);
                     double maxVariance = Variance(maxScores);
 
+                    nolScores.Sort();
+                    int r2 = (int)Math.Ceiling(nolScores.Count * rate);
+                    for (int i = 0; i < r2; i++)
+                    {
+                        nolScores.RemoveAt(nolScores.Count - 1);
+                        nolScores.RemoveAt(0);
+                    }
                     double nolMean = Mean(nolScores);
                     double nolVariance = Variance(nolScores);
 
+                    minScores.Sort();
+                    int r3 = (int)Math.Ceiling(minScores.Count * rate);
+                    for (int i = 0; i < r3; i++)
+                    {
+                        minScores.RemoveAt(minScores.Count - 1);
+                        minScores.RemoveAt(0);
+                    }
                     double minMean = Mean(minScores);
                     double minVariance = Variance(minScores);
 
@@ -430,7 +452,7 @@ namespace FundHelper
                 incSum = incSum3;
             }
             //int index = fund.HistoryList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
-            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], fund.ThinkEndIndex);
+            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], fund.ThinkEndIndex-fund.ThinkStartIndex);
             double regress = todayValue - equation;
 
             double score = GetScore(fund.V1, fund.V2, fund.V3, incOnce, incSum, regress); //fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;

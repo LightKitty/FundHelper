@@ -67,18 +67,32 @@ namespace FundHelper
             double chipSumMin = double.MaxValue;
             double moneyMax = double.MinValue;
             double moneyMin = double.MaxValue;
+            double rateSon = 0.0;
+            double rateMonther = 0.0;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
-
-            for (DateTime endTime = new DateTime(2019, 11, 1); endTime < new DateTime(2019,12,25); endTime = endTime.AddDays(1))
+            DateTime endTime = DateTime.Now;
+            for (endTime = new DateTime(2019, 11, 1); endTime < new DateTime(2019,12,25); endTime = endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
                 if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
                 Think.Calculate(startTime, endTime, fund);
+                //fund.V1 = 0.5;
+                //fund.V2 = 0.4;
+                //fund.V3 = 0.1;
                 int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                double chip = Think.Predict(fund, fund.HistoryList[index].Item2);
+                double valueNow = fund.HistoryList[index].Item2;
+                double valueLast = fund.HistoryList[index - 1].Item2;
+                if (chipSum > 0)
+                {
+                    double dayRate = (valueNow - valueLast) / valueLast; //日收益率
+                    rateSon += chipSum * dayRate;
+                    rateMonther += chipSum;
+                }
+                double chip = Think.Predict(fund, valueNow);
                 if (chip != 0)
                 {
+                    if (chipSum + chip < 0) chip = -chipSum;
                     double cost = chip * fund.HistoryList[index].Item2;
                     money -= cost;
                     if (money > moneyMax)
@@ -102,6 +116,7 @@ namespace FundHelper
 
             }
 
+            double rate = rateSon / rateMonther;
             //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
