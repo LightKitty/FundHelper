@@ -43,14 +43,70 @@ namespace FundHelper
             InitStockDataView(); // 初始化股票DataView
             GoldLableUpdate(); // 初始化黄金文本
 
-            //FundsCalculate(); //基金计算
+            FundsCalculate(); //基金计算
 
 
-            Fund fund = funds.Find(x => x.Code == "fu_005918");
+            //Fund fund = funds.Find(x => x.Code == "fu_005918");
+            //DateTime startTime = new DateTime(2019, 1, 1);
+            //List<Tuple<DateTime, double>> needList;
+            //Think.Calculate(startTime, fund);
+
+            ChartDarw(funds.Find(x => x.Code == "fu_005918"));
+
+
+
+            //return;
+            timerUpdate.Stop();
             DateTime startTime = new DateTime(2019, 1, 1);
-            List<Tuple<DateTime, double>> needList;
-            Think.Calculate(startTime, fund);
+            //DateTime endTime = new DateTime(2019, 12, 1);
+            Fund fund = funds.First(x => x.Code == "fu_005918");
+            fund.CreateHistoryList();
+            double money = 100;
+            double chipSum = 0.0;
+            double chipSumMax = double.MinValue;
+            double chipSumMin = double.MaxValue;
+            double moneyMax = double.MinValue;
+            double moneyMin = double.MaxValue;
+            //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
 
+            for (DateTime endTime = new DateTime(2019, 11, 1); endTime < new DateTime(2019,12,25); endTime = endTime.AddDays(1))
+            {
+                Console.WriteLine(endTime);
+                if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
+                Think.Calculate(startTime, endTime, fund);
+                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
+                if (index < 0) break;
+                double chip = Think.Predict(fund, fund.HistoryList[index].Item2);
+                if (chip != 0)
+                {
+                    double cost = chip * fund.HistoryList[index].Item2;
+                    money -= cost;
+                    if (money > moneyMax)
+                    {
+                        moneyMax = money;
+                    }
+                    if (money < moneyMin)
+                    {
+                        moneyMin = money;
+                    }
+                    chipSum += chip;
+                    if (chipSum > chipSumMax)
+                    {
+                        chipSumMax = chipSum;
+                    }
+                    if (chipSum < chipSumMin)
+                    {
+                        chipSumMin = chipSum;
+                    }
+                }
+
+            }
+
+            //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
+        }
+
+        private void ChartDarw(Fund fund)
+        {
             var chart = chart1.ChartAreas[0];
             chart.AxisY.Minimum = 0.6;
             chart.AxisY.Maximum = 1.4;
@@ -75,8 +131,8 @@ namespace FundHelper
             //int firstIndex = fundValues.FindIndex(x => x.Item1 > startTime);
             for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
             {
-                chart1.Series["line1"].Points.AddXY(i- fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                if(fund.incFlags[i - fund.ThinkStartIndex] == 1)
+                chart1.Series["line1"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                if (fund.incFlags[i - fund.ThinkStartIndex] == 1)
                 {
                     chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
                 }
@@ -90,60 +146,6 @@ namespace FundHelper
                 //    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
                 //}
             }
-
-
-            //return;
-            //timerUpdate.Stop();
-            //List<Tuple<DateTime, double>> needFundValues;
-            //List<Tuple<DateTime, double, int>> fundPointsFinal;
-            //Tuple<double, double> t1;
-            //Tuple<double, double> t2;
-            //DateTime startTime = new DateTime(2019, 1, 1);
-            ////DateTime endTime = new DateTime(2019, 12, 1);
-            //Fund fund = funds.First(x => x.Code == "fu_001559");
-            //fund.CreateHistoryList();
-            //double money = 100;
-            //double chipSum = 0.0;
-            //double chipSumMax = double.MinValue;
-            //double chipSumMin = double.MaxValue;
-            //double moneyMax = double.MinValue;
-            //double moneyMin = double.MaxValue;
-            ////Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
-
-            //for (DateTime endTime= new DateTime(2019, 11, 1); endTime<DateTime.Now;endTime=endTime.AddDays(1))
-            //{
-            //    Console.WriteLine(endTime);
-            //    if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
-            //    Think.Calculate(startTime, endTime, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
-            //    int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
-            //    if (index < 0) break;
-            //    double chip = Think.Predict(fund, fund.HistoryList[index].Item2);
-            //    if(chip!=0)
-            //    {
-            //        double cost = chip * fund.HistoryList[index].Item2;
-            //        money -= cost;
-            //        if (money > moneyMax)
-            //        {
-            //            moneyMax = money;
-            //        }
-            //        if(money< moneyMin)
-            //        {
-            //            moneyMin = money;
-            //        }
-            //        chipSum += chip;
-            //        if (chipSum > chipSumMax)
-            //        {
-            //            chipSumMax = chipSum;
-            //        }
-            //        if (chipSum < chipSumMin)
-            //        {
-            //            chipSumMin = chipSum;
-            //        }
-            //    }
-
-            //}
-
-            //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
         private void FundsCalculate()

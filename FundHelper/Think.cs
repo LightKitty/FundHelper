@@ -384,7 +384,7 @@ namespace FundHelper
             {
                 if(lastMaxValue<0)
                 {
-                    if(fund.incFlags[i]==1)
+                    if(fund.incFlags[i- fund.ThinkStartIndex] ==1)
                     { //找到极大值
                         lastMaxValue = fund.HistoryList[i].Item2;
                     }
@@ -395,7 +395,7 @@ namespace FundHelper
                 }
                 else if(lastMinValue<0)
                 {
-                    if(fund.incFlags[i]==-1)
+                    if(fund.incFlags[i-fund.ThinkStartIndex] ==-1)
                     {
                         lastMinValue= fund.HistoryList[i].Item2;
                         break; //寻找结束
