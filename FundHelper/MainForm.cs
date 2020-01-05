@@ -59,7 +59,7 @@ namespace FundHelper
             timerUpdate.Stop();
             DateTime startTime = new DateTime(2019, 1, 1);
             DateTime endTimeStart = new DateTime(2019, 11, 1);
-            DateTime endTimeEnd = new DateTime(2019, 12, 31);
+            DateTime endTimeEnd = new DateTime(2019, 12, 25);
             //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_005918");
             fund.CreateHistoryList();
@@ -86,6 +86,7 @@ namespace FundHelper
                 //fund.V2 = 0.4;
                 //fund.V3 = 0.1;
                 int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
+                fund.ThinkEndIndex = index - 1;
                 if (index < 0) break;
                 valueNow = fund.HistoryList[index].Item2;
                 double valueLast = fund.HistoryList[index - 1].Item2;

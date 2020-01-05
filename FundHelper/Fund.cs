@@ -23,6 +23,7 @@ namespace FundHelper
         public double[] Coefs { get; set; }
         public int CoorZeroIndex { get; set; }
         public int[] incFlags { get; set; } //
+        public List<Tuple<DateTime, double>> NeedList { get; set; }
 
         public double μMax { get; set; }
         public double σMax { get; set; }

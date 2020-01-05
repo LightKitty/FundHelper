@@ -268,6 +268,7 @@ namespace FundHelper
                 //fund.V2 = 0.4;
                 //fund.V3 = 0.1;
                 int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
+                fund.ThinkEndIndex = index - 1;
                 if (index < 0) break;
                 valueNow = fund.HistoryList[index].Item2;
                 fund.ThinkEndIndex = index - 1;
