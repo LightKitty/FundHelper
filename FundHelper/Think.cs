@@ -116,7 +116,7 @@ namespace FundHelper
                         //DateTime timeLast = fundPointsFinal[lastIndex].Item1;
                         //int lastIndex = needFundValues.FindIndex(x => x.Item1.Equals(last.Item1));
                         double lastFinalValue = needList[lastIndex].Item2;
-                        double incSum = (valueNow - lastFinalValue); //可优化，三点判断
+                        double incSum = (valueNow - lastFinalValue); 
 
                         double equation = EquationCalculate(coefs[1], coefs[0], i);
                         double regress = (valueNow - equation) ;
