@@ -22,6 +22,7 @@ namespace FundHelper
             //fund.ThinkStartTime = startTime;
             //fund.ThinkEndTime = endTime;
             int startIndex = fund.HistoryList.FindIndex(x => x.Item1 >= startTime);
+            fund.ThinkStartIndex = startIndex;
             int endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= endTime) + 1;
             var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
             int length = endIndex - startIndex;
@@ -59,6 +60,7 @@ namespace FundHelper
 
             //List<Tuple<DateTime, double, int>> fundPointsFinal = ExtremePointsFiltrate(fundPoints);
             int[] incFinalFlags = ExtremePointsFiltrate(needList, incFlags);
+            fund.incFlags = incFinalFlags;
             //List<double> adds = new List<double>();
             //double inc = 0.0;
             //for (int i = 0; i < fundPointsFinal.Count; i++)
@@ -83,14 +85,13 @@ namespace FundHelper
             double minVarianceWin = 0.0;
 
             //List<FundDayPoint> extremePointsMax = null;
-            for (double v1=0.00;v1<1;v1+=0.01)
+            for (double v1=0.0;v1<1;v1+=0.1)
             {
-                for (double v2 = 0.00; v2 < (1-v1); v2 += 0.01)
+                for (double v2 = 0.0; v2 < (1-v1); v2 += 0.1)
                 {
                     double v3 = 1 - v1 - v2;
                     if (v3 < 0.0) continue;
                     //分析
-
                     List<double> maxScores = new List<double>();
                     List<double> nolScores = new List<double>();
                     List<double> minScores = new List<double>();
@@ -178,9 +179,36 @@ namespace FundHelper
                         //不符合条件
                         continue;
                     }
+                    fund.μMax = maxMean;
+                    fund.σMax = maxVariance;
+                    fund.μNol = nolMean;
+                    fund.σNol = nolVariance;
+                    fund.μMin = minMean;
+                    fund.σMin = minVariance;
 
+                    fund.V1 = v1;
+                    fund.V2 = v2;
+                    fund.V3 = v3;
+                    double v = RateCalculate(fund, new DateTime(2019, 1, 1), new DateTime(2019, 11, 1), new DateTime(2019, 12, 25));
+                    if (v > vMax)
+                    {
+                        vMax = v;
+                        v1Max = v1;
+                        v2Max = v2;
+                        v3Max = v3;
+
+                        maxMeanWin = maxMean;
+                        maxVarianceWin = maxVariance;
+
+                        nolMeanWin = nolMean;
+                        nolVarianceWin = nolVariance;
+
+                        minMeanWin = minMean;
+                        minVarianceWin = minVariance;
+                    }
+                    /*
                     double value = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
-                    if(value> vMax)
+                    if (value> vMax)
                     {
                         //extremePointsMax = extremePoints;
                         vMax = value;
@@ -197,6 +225,7 @@ namespace FundHelper
                         minMeanWin = minMean;
                         minVarianceWin = minVariance;
                     }
+                    */
                 }
             }
 
@@ -212,7 +241,79 @@ namespace FundHelper
             fund.σMin = minVarianceWin;
             fund.ThinkStartIndex = startIndex;
             fund.ThinkEndIndex = endIndex;
-            fund.incFlags = incFinalFlags;
+        }
+
+        public static double RateCalculate(Fund fund, DateTime startTime, DateTime endTimeStart, DateTime endTimeEnd)
+        {
+            //DateTime startTime = new DateTime(2019, 1, 1);
+            //DateTime endTime = new DateTime(2019, 12, 1);
+            //Fund fund = funds.First(x => x.Code == "fu_005918");
+            //fund.CreateHistoryList();
+            double money = 100;
+            double costSum = 0.0; //花费
+            double earnSum = 0.0; //收益
+            double chipSum = 0.0;
+            double chipSumMax = double.MinValue;
+            double chipSumMin = double.MaxValue;
+            double moneyMax = double.MinValue;
+            double moneyMin = double.MaxValue;
+            double valueNow = 0.0;
+            //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
+            for (DateTime endTime = endTimeStart; endTime < endTimeEnd; endTime = endTime.AddDays(1))
+            {
+                //Console.WriteLine(endTime);
+                if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
+                //Think.Calculate(startTime, endTime, fund);
+                //fund.V1 = 0.5;
+                //fund.V2 = 0.4;
+                //fund.V3 = 0.1;
+                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
+                if (index < 0) break;
+                valueNow = fund.HistoryList[index].Item2;
+                fund.ThinkEndIndex = index - 1;
+                double chip = Predict(fund, valueNow);
+
+                if (chip == 0) continue; //没有变动
+                double cost = chip * fund.HistoryList[index].Item2; //花费
+                if (chip > 0)
+                { //买入
+                    //if (money - cost < 0)
+                    //{
+                    //    cost = money;
+                    //    chip = cost / fund.HistoryList[index].Item2;
+                    //}
+                    money -= cost;
+                    costSum += cost;
+                }
+                else if(chip < 0)
+                { //卖出
+                    if (chipSum + chip < 0) chip = -chipSum;
+                    cost = chip * fund.HistoryList[index].Item2;
+                    earnSum -= cost;
+                }
+
+                //记录最大最小值
+                if (money > moneyMax)
+                {
+                    moneyMax = money;
+                }
+                if (money < moneyMin)
+                {
+                    moneyMin = money;
+                }
+                chipSum += chip;
+                if (chipSum > chipSumMax)
+                {
+                    chipSumMax = chipSum;
+                }
+                if (chipSum < chipSumMin)
+                {
+                    chipSumMin = chipSum;
+                }
+            }
+
+            double rate = ((earnSum + chipSum * valueNow) / costSum - 1) * 100; //总收益率（%）
+            return rate;
         }
 
         private static double GetScore(double v1, double v2, double v3, double x1, double x2, double x3)

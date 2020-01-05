@@ -58,10 +58,14 @@ namespace FundHelper
             //return;
             timerUpdate.Stop();
             DateTime startTime = new DateTime(2019, 1, 1);
+            DateTime endTimeStart = new DateTime(2019, 11, 1);
+            DateTime endTimeEnd = new DateTime(2019, 12, 31);
             //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_005918");
             fund.CreateHistoryList();
             double money = 100;
+            double costSum = 0.0; //花费
+            double earnSum = 0.0; //收益
             double chipSum = 0.0;
             double chipSumMax = double.MinValue;
             double chipSumMin = double.MaxValue;
@@ -69,19 +73,21 @@ namespace FundHelper
             double moneyMin = double.MaxValue;
             double rateSon = 0.0;
             double rateMonther = 0.0;
+            double valueNow = 0.0;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
             DateTime endTime = DateTime.Now;
-            for (endTime = new DateTime(2019, 11, 1); endTime < new DateTime(2019,12,25); endTime = endTime.AddDays(1))
+            for (endTime = endTimeStart; endTime<endTimeEnd; endTime = endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
                 if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
-                Think.Calculate(startTime, endTime, fund);
+                //Think.Calculate(startTime, endTime, fund);
+                //Think.RateCalculate(fund, startTime, endTimeStart, endTimeEnd);
                 //fund.V1 = 0.5;
                 //fund.V2 = 0.4;
                 //fund.V3 = 0.1;
                 int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                double valueNow = fund.HistoryList[index].Item2;
+                valueNow = fund.HistoryList[index].Item2;
                 double valueLast = fund.HistoryList[index - 1].Item2;
                 if (chipSum > 0)
                 {
@@ -94,6 +100,8 @@ namespace FundHelper
                 {
                     if (chipSum + chip < 0) chip = -chipSum;
                     double cost = chip * fund.HistoryList[index].Item2;
+                    if (cost > 0) costSum += cost;
+                    else if (cost < 0) earnSum -= cost;
                     money -= cost;
                     if (money > moneyMax)
                     {
@@ -116,7 +124,7 @@ namespace FundHelper
 
             }
 
-            double rate = rateSon / rateMonther;
+            double rate = ((earnSum + chipSum * valueNow) / costSum - 1) * 100; //总收益率（%）
             //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
         }
 
