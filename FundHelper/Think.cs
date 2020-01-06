@@ -58,6 +58,10 @@ namespace FundHelper
                 {
                     double v3 = 1 - v1 - v2;
                     if (v3 < 0.0) continue;
+                    if(v1==0.4&&v2==0.4)
+                    {
+                        int a = 0;
+                    }
                     //分析
                     List<double> maxScores = new List<double>();
                     List<double> nolScores = new List<double>();
