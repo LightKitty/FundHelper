@@ -23,6 +23,7 @@ namespace FundHelper
             fund.ThinkStartIndex = startIndex;
             int endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= endTime) + 1;
             var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
+            fund.NeedList = needList; //需要用到的的列表
             int length = endIndex - startIndex;
             int[] incFlags = GetExtremePoints(needList); //涨跌标识
             double[] arrX = new double[length];
@@ -99,40 +100,21 @@ namespace FundHelper
                     }
 
                     //去掉偶然值
-                    double rate = 0.025;
-                    maxScores.Sort();
-                    int r1 = (int)Math.Ceiling(maxScores.Count * rate);
-                    for(int i=0;i<r1;i++)
-                    {
-                        maxScores.RemoveAt(maxScores.Count - 1);
-                        maxScores.RemoveAt(0);
-                    }
+                    double proportion = 0.05;
+                    maxScores.RemoveAbnormalValue(proportion);
                     double maxMean = Mean(maxScores);
                     double maxVariance = Variance(maxScores);
 
-                    nolScores.Sort();
-                    int r2 = (int)Math.Ceiling(nolScores.Count * rate);
-                    for (int i = 0; i < r2; i++)
-                    {
-                        nolScores.RemoveAt(nolScores.Count - 1);
-                        nolScores.RemoveAt(0);
-                    }
+                    nolScores.RemoveAbnormalValue(proportion);
                     double nolMean = Mean(nolScores);
                     double nolVariance = Variance(nolScores);
 
-                    minScores.Sort();
-                    int r3 = (int)Math.Ceiling(minScores.Count * rate);
-                    for (int i = 0; i < r3; i++)
-                    {
-                        minScores.RemoveAt(minScores.Count - 1);
-                        minScores.RemoveAt(0);
-                    }
+                    minScores.RemoveAbnormalValue(proportion);
                     double minMean = Mean(minScores);
                     double minVariance = Variance(minScores);
 
                     if (!(maxMean > nolMean && nolMean > minMean))
-                    {
-                        //不符合条件
+                    { //不符合条件
                         continue;
                     }
                     fund.μMax = maxMean;
@@ -192,15 +174,13 @@ namespace FundHelper
             for (DateTime endTime = endTimeStart; endTime < endTimeEnd; endTime = endTime.AddDays(1))
             {
                 if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
-                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
-                fund.ThinkEndIndex = index - 1;
+                int index = fund.NeedList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                valueNow = fund.HistoryList[index].Item2;
-                fund.ThinkEndIndex = index - 1;
-                double chip = Predict(fund, valueNow);
+                valueNow = fund.NeedList[index].Item2;
+                double chip = Predict(fund, valueNow, index - 1);
 
                 if (chip == 0) continue; //没有变动
-                double cost = chip * fund.HistoryList[index].Item2; //花费
+                double cost = chip * fund.NeedList[index].Item2; //花费
                 if (chip > 0)
                 { //买入
                     //if (money - cost < 0)
@@ -214,7 +194,7 @@ namespace FundHelper
                 else if(chip < 0)
                 { //卖出
                     if (chipSum + chip < 0) chip = -chipSum;
-                    cost = chip * fund.HistoryList[index].Item2;
+                    cost = chip * fund.NeedList[index].Item2;
                     earnSum -= cost;
                 }
 
@@ -371,33 +351,33 @@ namespace FundHelper
 
         public static double Predict(Fund fund)
         {
-            return Predict(fund, (double)fund.RealValue);
+            return Predict(fund, (double)fund.RealValue, fund.NeedList.Count - 1);
         }
 
-        public static double Predict(Fund fund, double todayValue)
+        public static double Predict(Fund fund, double todayValue, int index)
         {
-            double incOnce = todayValue - fund.HistoryList[fund.ThinkEndIndex - 1].Item2;
+            double incOnce = todayValue - fund.NeedList[index].Item2;
             double minValue = double.MaxValue;
             double lastMaxValue = -1;
             double lastMinValue = -1;
-            for(int i=fund.ThinkEndIndex-1;i>=fund.ThinkStartIndex;i--)
+            for(int i= index; i>=0;i--)
             {
                 if(lastMaxValue<0)
                 {
-                    if(fund.incFlags[i- fund.ThinkStartIndex] ==1)
+                    if(fund.incFlags[i] ==1)
                     { //找到极大值
-                        lastMaxValue = fund.HistoryList[i].Item2;
+                        lastMaxValue = fund.NeedList[i].Item2;
                     }
-                    if(fund.HistoryList[i].Item2<minValue)
+                    if(fund.NeedList[i].Item2 < minValue)
                     { //记录最小值
-                        minValue = fund.HistoryList[i].Item2;
+                        minValue = fund.NeedList[i].Item2;
                     }
                 }
                 else if(lastMinValue<0)
                 {
-                    if(fund.incFlags[i-fund.ThinkStartIndex] ==-1)
+                    if(fund.incFlags[i] ==-1)
                     {
-                        lastMinValue= fund.HistoryList[i].Item2;
+                        lastMinValue= fund.NeedList[i].Item2;
                         break; //寻找结束
                     }
                 }
@@ -419,8 +399,8 @@ namespace FundHelper
             {
                 incSum = incSum3;
             }
-            //int index = fund.HistoryList.FindLastIndex(x => x.Item1 <= fund.ThinkEndTime) + 1 - fund.CoorZeroIndex;
-            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], fund.ThinkEndIndex-fund.ThinkStartIndex);
+            
+            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index + 1);
             double regress = todayValue - equation;
 
             double score = GetScore(fund.V1, fund.V2, fund.V3, incOnce, incSum, regress); //fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;

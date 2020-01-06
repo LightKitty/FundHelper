@@ -71,8 +71,6 @@ namespace FundHelper
             double chipSumMin = double.MaxValue;
             double moneyMax = double.MinValue;
             double moneyMin = double.MaxValue;
-            double rateSon = 0.0;
-            double rateMonther = 0.0;
             double valueNow = 0.0;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
             DateTime endTime = DateTime.Now;
@@ -85,22 +83,14 @@ namespace FundHelper
                 //fund.V1 = 0.5;
                 //fund.V2 = 0.4;
                 //fund.V3 = 0.1;
-                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
-                fund.ThinkEndIndex = index - 1;
+                int index = fund.NeedList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                valueNow = fund.HistoryList[index].Item2;
-                double valueLast = fund.HistoryList[index - 1].Item2;
-                if (chipSum > 0)
-                {
-                    double dayRate = (valueNow - valueLast) / valueLast; //日收益率
-                    rateSon += chipSum * dayRate;
-                    rateMonther += chipSum;
-                }
-                double chip = Think.Predict(fund, valueNow);
+                valueNow = fund.NeedList[index].Item2;
+                double chip = Think.Predict(fund, valueNow, index - 1);
                 if (chip != 0)
                 {
                     if (chipSum + chip < 0) chip = -chipSum;
-                    double cost = chip * fund.HistoryList[index].Item2;
+                    double cost = chip * fund.NeedList[index].Item2;
                     if (cost > 0) costSum += cost;
                     else if (cost < 0) earnSum -= cost;
                     money -= cost;
@@ -516,7 +506,7 @@ namespace FundHelper
         {
             foreach(Fund fund in funds)
             {
-                double chip = Think.Predict(fund, (double)fund.RealValue);
+                double chip = Think.Predict(fund);
                 double cost = chip * (double)fund.RealValue * 100;
                 fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["Buy"] = Math.Round(cost, 0);
             }
