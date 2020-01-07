@@ -34,6 +34,7 @@ namespace FundHelper
         public MainForm()
         {
             InitializeComponent();
+            ChartInit();
 
             Initfunds(); //初始化基金
             InitStocks(); //初始化股票
@@ -55,14 +56,51 @@ namespace FundHelper
 
 
 
-            //return;
+            return;
             timerUpdate.Stop();
             Fund fund = funds.First(x => x.Code == "fu_005918");
             DateTime startTime = new DateTime(2019, 1, 1);
-            DateTime endTimeEnd = fund.HistoryList.Last().Item1;
-            DateTime endTimeStart = new DateTime(2019, 12, 1);
-            //DateTime endTime = new DateTime(2019, 12, 1);
-            fund.CreateHistoryList();
+            DateTime endTimeStart = new DateTime(2019, 5, 1);
+            DateTime endTimeEnd = new DateTime(2019, 12, 13);
+            double rate = YieldRate(fund, startTime, endTimeStart, endTimeEnd);
+        }
+
+        public void ChartInit()
+        {
+            var chart = chart1.ChartAreas[0];
+            chart.AxisX.Minimum = 0;
+            chart.AxisY.IsStartedFromZero = false;
+            //chart.AxisY.Minimum = 0.6;
+            //chart.AxisY.Maximum = 1.4;
+            chart1.Series.Add("line1");
+            chart1.Series.Add("line2");
+            chart1.Series.Add("line3");
+            chart1.Series.Add("line4");
+            chart1.Series.Add("line5");
+            //绘制折线图
+            chart1.Series["line1"].ChartType = SeriesChartType.Line;
+            chart1.Series["line1"].Color = Color.Black;
+            chart1.Series["line2"].ChartType = SeriesChartType.Point;
+            chart1.Series["line2"].Color = Color.Red;
+            chart1.Series["line3"].ChartType = SeriesChartType.Point;
+            chart1.Series["line3"].Color = Color.Blue;
+            chart1.Series["line4"].ChartType = SeriesChartType.Line;
+            chart1.Series["line4"].Color = Color.Green;
+            chart1.Series["line5"].ChartType = SeriesChartType.Point;
+            chart1.Series["line5"].Color = Color.Red;
+        }
+
+        /// <summary>
+        /// 收益率计算
+        /// </summary>
+        /// <param name="fund"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTimeStart"></param>
+        /// <param name="endTimeEnd"></param>
+        /// <returns></returns>
+        public double YieldRate(Fund fund, DateTime startTime, DateTime endTimeStart, DateTime endTimeEnd)
+        {
+            //fund.CreateHistoryList();
             double money = 100;
             double costSum = 0.0; //花费
             double earnSum = 0.0; //收益
@@ -74,7 +112,7 @@ namespace FundHelper
             double valueNow = 0.0;
             //Think.Calculate(startTime, DateTime.Now, fund, out needFundValues, out fundPointsFinal, out t1, out t2);
             DateTime endTime = DateTime.Now;
-            for (endTime = endTimeStart; endTime<endTimeEnd; endTime = endTime.AddDays(1))
+            for (endTime = endTimeStart; endTime < endTimeEnd; endTime = endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
                 Think.Calculate(startTime, endTime, fund);
@@ -99,7 +137,7 @@ namespace FundHelper
                 }
                 else if (chip < 0)
                 { //卖出
-                    if (chipSum + chip < 0) chip = -chipSum;
+                    //if (chipSum + chip < 0) chip = -chipSum;
                     cost = chip * fund.HistoryList[index].Item2;
                     earnSum -= cost;
                     money -= cost;
@@ -126,30 +164,18 @@ namespace FundHelper
             }
 
             double rate = ((earnSum + chipSum * valueNow) / costSum - 1) * 100; //总收益率（%）
-            //ChartDraw(startTime, needFundValues, fundPointsFinal, t1, t2);
+            return rate;
         }
 
         private void ChartDarw(Fund fund)
         {
-            var chart = chart1.ChartAreas[0];
-            chart.AxisY.Minimum = 0.6;
-            chart.AxisY.Maximum = 1.4;
-            chart1.Series.Add("line1");
-            chart1.Series.Add("line2");
-            chart1.Series.Add("line3");
-            chart1.Series.Add("line4");
-            chart1.Series.Add("line5");
-            //绘制折线图
-            chart1.Series["line1"].ChartType = SeriesChartType.Line;
-            chart1.Series["line1"].Color = Color.Black;
-            chart1.Series["line2"].ChartType = SeriesChartType.Point;
-            chart1.Series["line2"].Color = Color.Red;
-            chart1.Series["line3"].ChartType = SeriesChartType.Point;
-            chart1.Series["line3"].Color = Color.Blue;
-            chart1.Series["line4"].ChartType = SeriesChartType.Line;
-            chart1.Series["line4"].Color = Color.Green;
-            chart1.Series["line5"].ChartType = SeriesChartType.Point;
-            chart1.Series["line5"].Color = Color.Red;
+            tabControl1.TabPages[3].Text = fund.Name;
+            chart1.Series["line1"].Points.Clear();
+            chart1.Series["line2"].Points.Clear();
+            chart1.Series["line3"].Points.Clear();
+            chart1.Series["line4"].Points.Clear();
+            chart1.Series["line5"].Points.Clear();
+
             int x1 = 0;
             double y1 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x1);
             int x2 = fund.ThinkEndIndex - fund.ThinkStartIndex;
@@ -159,24 +185,25 @@ namespace FundHelper
             for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
             {
                 chart1.Series["line1"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                //if (fund.IncFlags[i - fund.ThinkStartIndex] == 1)
-                //{
-                //    chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                //}
-                //else if (fund.IncFlags[i - fund.ThinkStartIndex] == -1)
-                //{
-                //    chart1.Series["line3"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                //}
-                //if (point != null)
-                //{
-                //    if (point.Item3 == 1) chart1.Series["line2"].Points.AddXY(i, point.Item2);
-                //    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
-                //}
-                if (fund.Tages[i - fund.ThinkStartIndex] == 1)
+                if (fund.IncFlags[i - fund.ThinkStartIndex] == 1)
                 {
-                    chart1.Series["line5"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                    chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
                 }
+                else if (fund.IncFlags[i - fund.ThinkStartIndex] == -1)
+                {
+                    chart1.Series["line3"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                }
+
+                //if (fund.Tages[i - fund.ThinkStartIndex] == 1)
+                //{
+                //    chart1.Series["line5"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                //}
             }
+            chart1.Series["line1"].Points.AddXY(fund.ThinkEndIndex - fund.ThinkStartIndex, fund.RealValue); //实时的加到最后
+            TabPage page = tabControl1.TabPages[3];
+            tabControl1.SelectedTab = page;
+            //tabControl1.TabPages.Remove(page);
+            //tabControl1.TabPages.Add(page);
         }
 
         private void FundsCalculate()
@@ -463,7 +490,7 @@ namespace FundHelper
             var data = GetRealTimeValue(fundCode);
             if(data?.Count()>6)
             {
-                realVal = Convert.ToDouble(data[3]);
+                realVal = Convert.ToDouble(data[2]);
                 realInc = Convert.ToDouble(data[6]);
                 result = true;
             }
@@ -507,10 +534,10 @@ namespace FundHelper
             fundsRealUpdate();
             FundTableUpdate();
 
-            if(timeNow.Hour==14)
-            {
+            //if(timeNow.Hour==14)
+            //{
                 FundsPredict();
-            }
+            //}
 
             StockRealUpdate();
             StockTableUpdate();
@@ -548,6 +575,18 @@ namespace FundHelper
                 }
             };
             ps.Start();
+        }
+
+        private void dataGridViewFund_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = dataGridViewFund.Rows[e.RowIndex];
+                var dataRowView = (DataRowView)row.DataBoundItem;
+                string fundCode = dataRowView["Code"].ToString();//获取表的列名(id)
+                Fund fund = funds.Find(x => x.Code == fundCode);
+                ChartDarw(fund);
+            }
         }
     }
 }

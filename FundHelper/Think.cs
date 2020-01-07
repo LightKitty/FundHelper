@@ -26,13 +26,6 @@ namespace FundHelper
             var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
             Point[] points = GetPoints(needList);
             
-            //double disSum = 0.0;
-            //for (int i = 1; i < points.Length; i++)
-            //{
-            //    double dis = Math.Sqrt(Math.Pow((points[i].x - points[i - 1].x), 2) + Math.Pow((points[i].y - points[i - 1].y), 2));
-            //    disSum += dis;
-            //}
-            //double disMean = disSum / (points.Length - 1.0);
             DouglasFun(ref points, 0, points.Length - 1, 0.01);
             int[] tags = new int[points.Length];
             for(int i=0; i< points.Length; i++)
@@ -160,10 +153,10 @@ namespace FundHelper
             fund.V3 = v3Max;
             fund.μMax = maxMeanWin;
             fund.σMax = maxVarianceWin;
-            fund.μMin = minMeanWin;
-            fund.σMin = minVarianceWin;
             fund.μNol = nolMeanWin;
             fund.σNol = nolVarianceWin;
+            fund.μMin = minMeanWin;
+            fund.σMin = minVarianceWin;
         }
 
         private static Point[] GetPoints(List<Tuple<DateTime, double>> needList)

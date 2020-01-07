@@ -10,7 +10,7 @@ namespace FundHelper
     /// <summary>
     /// 基金
     /// </summary>
-    class Fund : Security
+    public class Fund : Security
     {
         public int ThinkStartIndex { get; set; } //Think起始位置
         /// <summary>

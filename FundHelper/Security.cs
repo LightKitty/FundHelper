@@ -9,7 +9,7 @@ namespace FundHelper
     /// <summary>
     /// 证券
     /// </summary>
-    abstract class Security
+    public abstract class Security
     {
         public string Code { get; set; } // 基金编码
         public string Name { get; set; } //基金名称

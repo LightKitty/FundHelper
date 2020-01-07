@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FundHelper
 {
-    class FundDayPoint
+    public class FundDayPoint
     {
         public DateTime Time { get; set; }
         public int Type { get; set; }
