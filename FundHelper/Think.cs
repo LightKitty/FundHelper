@@ -20,12 +20,29 @@ namespace FundHelper
         public static void Calculate(DateTime startTime, DateTime endTime, Fund fund)
         {
             int startIndex = fund.HistoryList.FindIndex(x => x.Item1 >= startTime);
-            fund.ThinkStartIndex = startIndex;
             int endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= endTime) + 1;
+            fund.ThinkStartIndex = startIndex;
+            fund.ThinkEndIndex = endIndex;
             var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
-            fund.NeedList = needList; //需要用到的的列表
+            Point[] points = GetPoints(needList);
+            
+            //double disSum = 0.0;
+            //for (int i = 1; i < points.Length; i++)
+            //{
+            //    double dis = Math.Sqrt(Math.Pow((points[i].x - points[i - 1].x), 2) + Math.Pow((points[i].y - points[i - 1].y), 2));
+            //    disSum += dis;
+            //}
+            //double disMean = disSum / (points.Length - 1.0);
+            DouglasFun(ref points, 0, points.Length - 1, 0.01);
+            int[] tags = new int[points.Length];
+            for(int i=0; i< points.Length; i++)
+            {
+                tags[i] = points[i].tag;
+            }
+            fund.Tages = tags;
+            //fund.NeedList = needList; //需要用到的的列表
             int length = endIndex - startIndex;
-            int[] incFlags = GetExtremePoints(needList); //涨跌标识
+            int[] incFlags = GetExtremePoints(needList, tags); //涨跌标识
             double[] arrX = new double[length];
             double[] arrY = new double[length];
             for (int i = 0; i < length; i++)
@@ -36,8 +53,8 @@ namespace FundHelper
 
             double[] coefs = MultiLine(arrX, arrY, length, 1);
             fund.Coefs = coefs;
-            int[] incFinalFlags = ExtremePointsFiltrate(needList, incFlags);
-            fund.incFlags = incFinalFlags;
+            //int[] incFinalFlags = ExtremePointsFiltrate(needList, incFlags);
+            fund.IncFlags = incFlags;
 
             double vMax = double.MinValue;
             double v1Max = 0.0;
@@ -46,22 +63,18 @@ namespace FundHelper
             double maxMeanWin = 0.0;
             double maxVarianceWin = 0.0;
 
+            double minMeanWin = 0.0;
+            double minVarianceWin = 0.0;
+
             double nolMeanWin = 0.0;
             double nolVarianceWin = 0.0;
 
-            double minMeanWin = 0.0;
-            double minVarianceWin = 0.0;
-            
-            for (double v1=0.0;v1<1;v1+=0.1)
+            for (double v1=0.0;v1<1;v1+=0.01)
             {
-                for (double v2 = 0.0; v2 < (1-v1); v2 += 0.1)
+                for (double v2 = 0.0; v2 < (1-v1); v2 += 0.01)
                 {
                     double v3 = 1 - v1 - v2;
                     if (v3 < 0.0) continue;
-                    if(v1==0.4&&v2==0.4)
-                    {
-                        int a = 0;
-                    }
                     //分析
                     List<double> maxScores = new List<double>();
                     List<double> nolScores = new List<double>();
@@ -75,7 +88,7 @@ namespace FundHelper
                         int lastIndex = -1;
                         for(int j=i-1;j>=0;j--)
                         {
-                            if(incFinalFlags[j]!=0)
+                            if(incFlags[j]!=0)
                             {
                                 lastIndex = j;
                                 break;
@@ -89,7 +102,7 @@ namespace FundHelper
                         double regress = (valueNow - equation) ;
                         
                         double score = GetScore(v1, v2, v3, incOnce, incSum, regress);
-                        switch(incFinalFlags[i])
+                        switch(incFlags[i])
                         {
                             case 1: //极大值
                                 maxScores.Add(score);
@@ -121,17 +134,8 @@ namespace FundHelper
                     { //不符合条件
                         continue;
                     }
-                    fund.μMax = maxMean;
-                    fund.σMax = maxVariance;
-                    fund.μNol = nolMean;
-                    fund.σNol = nolVariance;
-                    fund.μMin = minMean;
-                    fund.σMin = minVariance;
 
-                    fund.V1 = v1;
-                    fund.V2 = v2;
-                    fund.V3 = v3;
-                    double v = RateCalculate(fund, new DateTime(2019, 1, 1), new DateTime(2019, 11, 1), new DateTime(2019, 12, 25));
+                    double v = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
                     if (v > vMax)
                     {
                         vMax = v;
@@ -142,11 +146,11 @@ namespace FundHelper
                         maxMeanWin = maxMean;
                         maxVarianceWin = maxVariance;
 
-                        nolMeanWin = nolMean;
-                        nolVarianceWin = nolVariance;
-
                         minMeanWin = minMean;
                         minVarianceWin = minVariance;
+
+                        nolMeanWin = nolMean;
+                        nolVarianceWin = nolVariance;
                     }
                 }
             }
@@ -156,20 +160,39 @@ namespace FundHelper
             fund.V3 = v3Max;
             fund.μMax = maxMeanWin;
             fund.σMax = maxVarianceWin;
-            fund.μNol = nolMeanWin;
-            fund.σNol = nolVarianceWin;
             fund.μMin = minMeanWin;
             fund.σMin = minVarianceWin;
-            fund.ThinkStartIndex = startIndex;
-            fund.ThinkEndIndex = endIndex;
+            fund.μNol = nolMeanWin;
+            fund.σNol = nolVarianceWin;
         }
 
-        public static double RateCalculate(Fund fund, DateTime startTime, DateTime endTimeStart, DateTime endTimeEnd)
+        private static Point[] GetPoints(List<Tuple<DateTime, double>> needList)
+        {
+            Point[] points = new Point[needList.Count];
+            for(int i=0;i< points.Length;i++)
+            {
+                points[i].x = i;
+                points[i].y = needList[i].Item2;
+                points[i].tag = 1;
+            }
+            return points;
+        }
+
+        /// <summary>
+        /// 收益率计算
+        /// </summary>
+        /// <param name="fund"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTimeStart"></param>
+        /// <param name="endTimeEnd"></param>
+        /// <param name="chipSum"></param>
+        /// <returns></returns>
+        public static double RateCalculate(Fund fund, DateTime endTimeStart, DateTime endTimeEnd, out double chipSum)
         {
             double money = 100;
             double costSum = 0.0; //花费
             double earnSum = 0.0; //收益
-            double chipSum = 0.0;
+            chipSum = 0.0;
             double chipSumMax = double.MinValue;
             double chipSumMin = double.MaxValue;
             double moneyMax = double.MinValue;
@@ -178,28 +201,29 @@ namespace FundHelper
             for (DateTime endTime = endTimeStart; endTime < endTimeEnd; endTime = endTime.AddDays(1))
             {
                 if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
-                int index = fund.NeedList.FindIndex(x => x.Item1 > endTime);
+                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                valueNow = fund.NeedList[index].Item2;
+                valueNow = fund.HistoryList[index].Item2;
                 double chip = Predict(fund, valueNow, index - 1);
 
                 if (chip == 0) continue; //没有变动
-                double cost = chip * fund.NeedList[index].Item2; //花费
+                double cost = chip * fund.HistoryList[index].Item2; //花费
                 if (chip > 0)
                 { //买入
-                    //if (money - cost < 0)
-                    //{
-                    //    cost = money;
-                    //    chip = cost / fund.HistoryList[index].Item2;
-                    //}
+                    if (money - cost < 0)
+                    {
+                        cost = money;
+                        chip = cost / fund.HistoryList[index].Item2;
+                    }
                     money -= cost;
                     costSum += cost;
                 }
                 else if(chip < 0)
                 { //卖出
                     if (chipSum + chip < 0) chip = -chipSum;
-                    cost = chip * fund.NeedList[index].Item2;
+                    cost = chip * fund.HistoryList[index].Item2;
                     earnSum -= cost;
+                    money -= cost;
                 }
 
                 //记录最大最小值
@@ -255,7 +279,7 @@ namespace FundHelper
         /// <param name="v2"></param>
         /// <param name="i"></param>
         /// <returns></returns>
-        private static double EquationCalculate(double k, double b, int x)
+        public static double EquationCalculate(double k, double b, int x)
         {
             return k * x + b;
         }
@@ -279,21 +303,32 @@ namespace FundHelper
         /// </summary>
         /// <param name="fundValues"></param>
         /// <returns></returns>
-        public static int[] GetExtremePoints(List<Tuple<DateTime, double>> list)
+        public static int[] GetExtremePoints(List<Tuple<DateTime, double>> list, int[] tags)
         {
             int[] result = new int[list.Count];
-            for (int i = 1; i < list.Count - 1; i++)
+            double v1 = -1;
+            double v2 = -1;
+            double v3 = -1;
+            int i1 = -1;
+            int i2 = -1;
+            int i3 = -1;
+            for (int i = 0; i < list.Count ; i++)
             {
-                double valueNow = list[i].Item2;
-                double valueLast = list[i - 1].Item2;
-                double valueNext = list[i + 1].Item2;
-                if (valueNow > valueLast && valueNow >= valueNext || valueNow >= valueLast && valueNow > valueNext)
+                if (tags[i] == 0) continue;
+                v1 = v2;
+                v2 = v3;
+                v3 = list[i].Item2;
+                i1 = i2;
+                i2 = i3;
+                i3 = i;
+                if (v1 < 0 || v2 < 0 || v3 < 0) continue;
+                if (v2 > v1 && v2 >= v3 || v2 >= v1 && v2 > v3)
                 {
-                    result[i] = 1;
+                    result[i2] = 1;
                 }
-                else if (valueNow < valueLast && valueNow <= valueNext || valueNow <= valueLast && valueNow < valueNext)
+                else if (v2 < v1 && v2 <= v3 || v2 <= v1 && v2 < v3)
                 {
-                    result[i] = -1;
+                    result[i2] = -1;
                 }
             }
             return result;
@@ -355,56 +390,41 @@ namespace FundHelper
 
         public static double Predict(Fund fund)
         {
-            return Predict(fund, (double)fund.RealValue, fund.NeedList.Count - 1);
+            return Predict(fund, (double)fund.RealValue, fund.HistoryList.Count - 1);
         }
 
         public static double Predict(Fund fund, double todayValue, int index)
         {
-            double incOnce = todayValue - fund.NeedList[index].Item2;
-            double minValue = double.MaxValue;
+            double incOnce = todayValue - fund.HistoryList[index].Item2;
+            //double minValue = double.MaxValue;
             double lastMaxValue = -1;
             double lastMinValue = -1;
-            for(int i= index; i>=0;i--)
+            for(int i= index; i>= fund.ThinkStartIndex; i--)
             {
-                if(lastMaxValue<0)
-                {
-                    if(fund.incFlags[i] ==1)
-                    { //找到极大值
-                        lastMaxValue = fund.NeedList[i].Item2;
-                    }
-                    if(fund.NeedList[i].Item2 < minValue)
-                    { //记录最小值
-                        minValue = fund.NeedList[i].Item2;
-                    }
+                if (lastMaxValue > 0 && lastMinValue > 0) break;
+                if (fund.IncFlags[i - fund.ThinkStartIndex] == 1)
+                { //找到极大值
+                    lastMaxValue = fund.HistoryList[i].Item2;
                 }
-                else if(lastMinValue<0)
+                else if (fund.IncFlags[i - fund.ThinkStartIndex] == -1)
                 {
-                    if(fund.incFlags[i] ==-1)
-                    {
-                        lastMinValue= fund.NeedList[i].Item2;
-                        break; //寻找结束
-                    }
+                    lastMinValue = fund.HistoryList[i].Item2;
                 }
             }
-
-            double incSum1 = todayValue - minValue;
-            double incSum2 = todayValue - lastMaxValue;
-            double incSum3 = todayValue - lastMinValue;
+            
+            double incSum1 = todayValue - lastMaxValue;
+            double incSum2 = todayValue - lastMinValue;
             double incSum = 0.0;
-            if (Math.Abs(incSum1) > Math.Abs(incSum2) && Math.Abs(incSum1) > Math.Abs(incSum3))
+            if (Math.Abs(incSum1) > Math.Abs(incSum2))
             {
                 incSum = incSum1;
             }
-            else if (Math.Abs(incSum2) > Math.Abs(incSum3))
+            else
             {
                 incSum = incSum2;
             }
-            else
-            {
-                incSum = incSum3;
-            }
             
-            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index + 1);
+            double equation = EquationCalculate(fund.Coefs[1], fund.Coefs[0], index + 1 - fund.ThinkStartIndex);
             double regress = todayValue - equation;
 
             double score = GetScore(fund.V1, fund.V2, fund.V3, incOnce, incSum, regress); //fund.V1 * incOnce + fund.V2 * incSum + fund.V3 * regress;
@@ -659,5 +679,83 @@ namespace FundHelper
 
             return x;
         }//返回值是函数的系数
+
+        public struct Point
+        {
+            public double x;
+            public double y;
+            public int tag;//判断此点是否保留标志，1保留，0不保留
+        }
+
+        ///getmax是获取最大距离与最大距离所对应点标号函数
+        static void getmax(out double dmax, out int dmax_tag, Point[] points, int left, int right)
+        {
+            dmax = -1;//初始化个小值
+            dmax_tag = -1;
+            int i;
+            double distance;
+            double k = (points[left].y - points[right].y) / (points[left].x - points[right].x);//不考虑斜率不存在的无聊情况
+            double b = points[left].y - k * points[left].x;
+            //double k;
+            //double b;
+            //GetCefs(points[left].x, points[left].y, points[right].x, points[right].y, out k, out b);
+            //点到直线距离公式：(k*x-y+b)/√(k*k+1)
+            for (i = left + 1; i <= right - 1; i++)
+            {
+                distance = Math.Abs((k * points[i].x - points[i].y + b) / Math.Sqrt((k * k + 1)));
+                //distance = PointLineDis(points[i].x, points[i].y, k, b);
+                if (distance >= dmax)
+                {
+                    dmax = distance;
+                    dmax_tag = i;
+                }
+            }
+        }
+        //public static double PointLineDis(double x, double y, double x1, double y1, double x2, double y2)
+        //{
+        //    double k;
+        //    double b;
+        //    GetCefs(x1, y1, x2, y2, out k, out b);
+        //    return PointLineDis(x, y, k, b);
+        //}
+
+        //public static void GetCefs(double x1,double y1,double x2,double y2,out double k,out double b)
+        //{
+        //    k = (y1 - y2) / (x1 - x2);//不考虑斜率不存在的无聊情况
+        //    b = y1 - k * x1;
+        //}
+
+        //public static double PointLineDis(double x,double y,double k,double b)
+        //{
+        //    return Math.Abs((k * x - y + b) / Math.Sqrt((k * k + 1)));
+        //}
+
+        ///道格拉斯——普克法算法 https://blog.csdn.net/weixin_42034217/article/details/84800623
+        public static void DouglasFun(ref Point[] points, int left, int right, double Dis)
+        {
+            if (left >= right - 1)///少于三个点就退出了
+            {
+                return;
+            }
+            else
+            {
+                double dmax;//最大高度
+                int dmax_tag, i;//最大高度对应的点号
+                getmax(out dmax, out dmax_tag, points, left, right);//把dmax,dmax_tag指针传进去为了返回来
+                if (dmax < Dis)//舍去
+                {
+                    for (i = left + 1; i <= right - 1; i++)
+                    {
+                        points[i].tag = 0;//置舍去了的以0标记
+                    }
+                }
+                else
+                {
+                    ///递归，并以dmax_tag点为界，把曲线分为两部分，对这两部分重复使用该方法
+                    DouglasFun(ref points, left, dmax_tag, Dis);
+                    DouglasFun(ref points, dmax_tag, right, Dis);
+                }
+            }
+        }
     }
 }

@@ -13,6 +13,9 @@ namespace FundHelper
     class Fund : Security
     {
         public int ThinkStartIndex { get; set; } //Think起始位置
+        /// <summary>
+        /// Think结束位置 注意是最后+1位置
+        /// </summary>
         public int ThinkEndIndex { get; set; } //Think结束位置
         public DateTime ThinkStartTime { get; set; } //Think起始时间
         public DateTime ThinkEndTime { get; set; } //Think结束时间
@@ -22,8 +25,9 @@ namespace FundHelper
         public List<FundDayPoint> ExtremePoints { get; set; }
         public double[] Coefs { get; set; }
         public int CoorZeroIndex { get; set; }
-        public int[] incFlags { get; set; } //
-        public List<Tuple<DateTime, double>> NeedList { get; set; }
+        public int[] IncFlags { get; set; } //
+        public int[] Tages { get; set; }
+        //public List<Tuple<DateTime, double>> NeedList { get; set; }
 
         public double μMax { get; set; }
         public double σMax { get; set; }

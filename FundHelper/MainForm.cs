@@ -57,11 +57,11 @@ namespace FundHelper
 
             //return;
             timerUpdate.Stop();
-            DateTime startTime = new DateTime(2019, 1, 1);
-            DateTime endTimeStart = new DateTime(2019, 11, 1);
-            DateTime endTimeEnd = new DateTime(2019, 12, 25);
-            //DateTime endTime = new DateTime(2019, 12, 1);
             Fund fund = funds.First(x => x.Code == "fu_005918");
+            DateTime startTime = new DateTime(2019, 1, 1);
+            DateTime endTimeEnd = fund.HistoryList.Last().Item1;
+            DateTime endTimeStart = new DateTime(2019, 12, 1);
+            //DateTime endTime = new DateTime(2019, 12, 1);
             fund.CreateHistoryList();
             double money = 100;
             double costSum = 0.0; //花费
@@ -77,42 +77,52 @@ namespace FundHelper
             for (endTime = endTimeStart; endTime<endTimeEnd; endTime = endTime.AddDays(1))
             {
                 Console.WriteLine(endTime);
+                Think.Calculate(startTime, endTime, fund);
                 if (!fund.HistoryDic.Keys.Contains(endTime)) continue;
-                //Think.Calculate(startTime, endTime, fund);
-                //Think.RateCalculate(fund, startTime, endTimeStart, endTimeEnd);
-                //fund.V1 = 0.5;
-                //fund.V2 = 0.4;
-                //fund.V3 = 0.1;
-                int index = fund.NeedList.FindIndex(x => x.Item1 > endTime);
+                int index = fund.HistoryList.FindIndex(x => x.Item1 > endTime);
                 if (index < 0) break;
-                valueNow = fund.NeedList[index].Item2;
+                valueNow = fund.HistoryList[index].Item2;
                 double chip = Think.Predict(fund, valueNow, index - 1);
-                if (chip != 0)
-                {
-                    if (chipSum + chip < 0) chip = -chipSum;
-                    double cost = chip * fund.NeedList[index].Item2;
-                    if (cost > 0) costSum += cost;
-                    else if (cost < 0) earnSum -= cost;
+
+                if (chip == 0) continue; //没有变动
+                double cost = chip * fund.HistoryList[index].Item2; //花费
+                if (chip > 0)
+                { //买入
+                    //if (money - cost < 0)
+                    //{
+                    //    cost = money;
+                    //    chip = cost / fund.HistoryList[index].Item2;
+                    //}
+
                     money -= cost;
-                    if (money > moneyMax)
-                    {
-                        moneyMax = money;
-                    }
-                    if (money < moneyMin)
-                    {
-                        moneyMin = money;
-                    }
-                    chipSum += chip;
-                    if (chipSum > chipSumMax)
-                    {
-                        chipSumMax = chipSum;
-                    }
-                    if (chipSum < chipSumMin)
-                    {
-                        chipSumMin = chipSum;
-                    }
+                    costSum += cost;
+                }
+                else if (chip < 0)
+                { //卖出
+                    if (chipSum + chip < 0) chip = -chipSum;
+                    cost = chip * fund.HistoryList[index].Item2;
+                    earnSum -= cost;
+                    money -= cost;
                 }
 
+                //记录最大最小值
+                if (money > moneyMax)
+                {
+                    moneyMax = money;
+                }
+                if (money < moneyMin)
+                {
+                    moneyMin = money;
+                }
+                chipSum += chip;
+                if (chipSum > chipSumMax)
+                {
+                    chipSumMax = chipSum;
+                }
+                if (chipSum < chipSumMin)
+                {
+                    chipSumMin = chipSum;
+                }
             }
 
             double rate = ((earnSum + chipSum * valueNow) / costSum - 1) * 100; //总收益率（%）
@@ -127,8 +137,8 @@ namespace FundHelper
             chart1.Series.Add("line1");
             chart1.Series.Add("line2");
             chart1.Series.Add("line3");
-            //chart1.Series.Add("line4");
-
+            chart1.Series.Add("line4");
+            chart1.Series.Add("line5");
             //绘制折线图
             chart1.Series["line1"].ChartType = SeriesChartType.Line;
             chart1.Series["line1"].Color = Color.Black;
@@ -136,29 +146,36 @@ namespace FundHelper
             chart1.Series["line2"].Color = Color.Red;
             chart1.Series["line3"].ChartType = SeriesChartType.Point;
             chart1.Series["line3"].Color = Color.Blue;
-            //chart1.Series["line4"].ChartType = SeriesChartType.Line;
-            //chart1.Series["line4"].Color = Color.Green; ;
-            //chart1.Series["line4"].Points.AddXY(t1.Item1, t1.Item2);
-            //chart1.Series["line4"].Points.AddXY(t2.Item1, t2.Item2);
-            chart1.Series[0].IsVisibleInLegend = false;
-            //fundValues.Reverse();
-            //int firstIndex = fundValues.FindIndex(x => x.Item1 > startTime);
+            chart1.Series["line4"].ChartType = SeriesChartType.Line;
+            chart1.Series["line4"].Color = Color.Green;
+            chart1.Series["line5"].ChartType = SeriesChartType.Point;
+            chart1.Series["line5"].Color = Color.Red;
+            int x1 = 0;
+            double y1 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x1);
+            int x2 = fund.ThinkEndIndex - fund.ThinkStartIndex;
+            double y2 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x2);
+            chart1.Series["line4"].Points.AddXY(x1,y1);
+            chart1.Series["line4"].Points.AddXY(x2,y2);
             for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
             {
                 chart1.Series["line1"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                if (fund.incFlags[i - fund.ThinkStartIndex] == 1)
-                {
-                    chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                }
-                else if (fund.incFlags[i - fund.ThinkStartIndex] == -1)
-                {
-                    chart1.Series["line3"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
-                }
+                //if (fund.IncFlags[i - fund.ThinkStartIndex] == 1)
+                //{
+                //    chart1.Series["line2"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                //}
+                //else if (fund.IncFlags[i - fund.ThinkStartIndex] == -1)
+                //{
+                //    chart1.Series["line3"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                //}
                 //if (point != null)
                 //{
                 //    if (point.Item3 == 1) chart1.Series["line2"].Points.AddXY(i, point.Item2);
                 //    else if (point.Item3 == -1) chart1.Series["line3"].Points.AddXY(i, point.Item2);
                 //}
+                if (fund.Tages[i - fund.ThinkStartIndex] == 1)
+                {
+                    chart1.Series["line5"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
+                }
             }
         }
 
