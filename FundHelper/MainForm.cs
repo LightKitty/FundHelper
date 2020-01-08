@@ -539,15 +539,6 @@ namespace FundHelper
             }
 
             RealUpdate();
-
-            //fundsRealUpdate();
-            //FundTableUpdate();
-
-            //StockRealUpdate();
-            //StockTableUpdate();
-
-            //GoldRealUpadte();
-            //GoldLableUpdate();
         }
 
         /// <summary>
