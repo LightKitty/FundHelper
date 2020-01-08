@@ -54,7 +54,7 @@ namespace FundHelper
 
             ChartDarw(funds.Find(x => x.Code == "fu_005918"));
 
-
+            timerUpdate.Start();
 
             return;
             timerUpdate.Stop();
@@ -393,7 +393,7 @@ namespace FundHelper
                 sr.Close();
             }
             //fundHistoryInit(); //获取基金历史信息
-            fundsRealUpdate(); // 基金实时刷新
+            //fundsRealUpdate(); // 基金实时刷新
         }
 
         /// <summary>
