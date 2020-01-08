@@ -456,7 +456,9 @@ namespace FundHelper
             {
                 if(fund.RealIncrease != null)
                 {
-                    fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault()["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
+                    var row = fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault();
+                    row["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
+                    row["Buy"] = Math.Round((double)fund.RealCost, 0);
                 }
             }
         }
@@ -474,6 +476,11 @@ namespace FundHelper
                 {
                     fund.RealValue = realVal;
                     fund.RealIncrease = realInc;
+
+                    double chip = Think.Predict(fund);
+                    double cost = chip * (double)fund.RealValue * 100;
+
+                    fund.RealCost = cost;
                 }
             }
         }
@@ -531,18 +538,32 @@ namespace FundHelper
                 Reboot();
             }
 
-            fundsRealUpdate();
+            RealUpdate();
+
+            //fundsRealUpdate();
+            //FundTableUpdate();
+
+            //StockRealUpdate();
+            //StockTableUpdate();
+
+            //GoldRealUpadte();
+            //GoldLableUpdate();
+        }
+
+        /// <summary>
+        /// 异步实时更新数据 并回调更新界面
+        /// </summary>
+        public async void RealUpdate()
+        {
+            var t = Task.Run(() =>
+            {
+                fundsRealUpdate();
+                StockRealUpdate();
+                GoldRealUpadte();
+            });
+            await t;
             FundTableUpdate();
-
-            //if(timeNow.Hour==14)
-            //{
-                FundsPredict();
-            //}
-
-            StockRealUpdate();
             StockTableUpdate();
-
-            GoldRealUpadte();
             GoldLableUpdate();
         }
 
