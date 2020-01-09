@@ -26,6 +26,8 @@ namespace FundHelper
         Gold gold; //黄金
 
         DateTime hisTime = DateTime.Now; //历史计算时间
+
+        private string chartFundCode; //图表基金编码
         #endregion
 
         /// <summary>
@@ -167,8 +169,20 @@ namespace FundHelper
             return rate;
         }
 
+        /// <summary>
+        /// 图表实时刷新
+        /// </summary>
+        private void ChartRealUpdate()
+        {
+            Fund fund = funds.Find(x => x.Code == chartFundCode);
+            chart1.Series["line1"].Points.RemoveAt(chart1.Series["line1"].Points.Count - 1);
+            chart1.Series["line1"].Points.AddXY(fund.ThinkEndIndex - fund.ThinkStartIndex, fund.RealValue);
+            //chart1.Series["line1"].Points[chart1.Series["line1"].Points.Count-1].SetValueY(fund.RealValue);
+        }
+
         private void ChartDarw(Fund fund)
         {
+            chartFundCode = fund.Code;
             tabControl1.TabPages[3].Text = fund.Name;
             chart1.Series["line1"].Points.Clear();
             chart1.Series["line2"].Points.Clear();
@@ -554,6 +568,7 @@ namespace FundHelper
             });
             await t;
             FundTableUpdate();
+            ChartRealUpdate();
             StockTableUpdate();
             GoldLableUpdate();
         }
