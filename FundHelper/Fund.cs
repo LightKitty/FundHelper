@@ -38,7 +38,11 @@ namespace FundHelper
         public double μNol { get; set; }
         public double σNol { get; set; }
 
+        public double μInc { get; set; }
+        public double σInc { get; set; }
+
         public double RealCost { get; set; }  //买入金额实时建议
+        public double RealSigma { get; set; } //实时增幅标准差与一倍标准差之比
 
         public double MaxNormalDistribution(double x)
         {

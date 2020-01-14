@@ -26,7 +26,7 @@ namespace FundHelper
             var needList = fund.HistoryList.GetRange(startIndex, endIndex - startIndex); //需要用到的历史纪录
             Point[] points = GetPoints(needList);
             
-            DouglasFun(ref points, 0, points.Length - 1, 0.01);
+            DouglasFun(ref points, 0, points.Length - 1, 0.01); //简化折线
             int[] tags = new int[points.Length];
             for(int i=0; i< points.Length; i++)
             {
@@ -49,115 +49,130 @@ namespace FundHelper
             //int[] incFinalFlags = ExtremePointsFiltrate(needList, incFlags);
             fund.IncFlags = incFlags;
 
-            double vMax = double.MinValue;
-            double v1Max = 0.0;
-            double v2Max = 0.0;
-            double v3Max = 0.0;
-            double maxMeanWin = 0.0;
-            double maxVarianceWin = 0.0;
-
-            double minMeanWin = 0.0;
-            double minVarianceWin = 0.0;
-
-            double nolMeanWin = 0.0;
-            double nolVarianceWin = 0.0;
-
-            for (double v1=0.0;v1<1;v1+=0.01)
+            double[] regs = new double[length];
+            for (int i = 1; i < needList.Count; i++)
             {
-                for (double v2 = 0.0; v2 < (1-v1); v2 += 0.01)
-                {
-                    double v3 = 1 - v1 - v2;
-                    if (v3 < 0.0) continue;
-                    //分析
-                    List<double> maxScores = new List<double>();
-                    List<double> nolScores = new List<double>();
-                    List<double> minScores = new List<double>();
-                    for (int i = 1; i < needList.Count; i++)
-                    {
-                        double lastValue = needList[i - 1].Item2;
-                        double valueNow = needList[i].Item2;
-                        double incOnce = (valueNow - lastValue);
+                double valueNow = needList[i].Item2;
+                double equation = EquationCalculate(coefs[1], coefs[0], i);
+                regs[i] = (valueNow - equation) / equation;
+            }
+            List<double> regList = regs.ToList();
+            double μ = Mean(regList);
+            double σ = Variance(regList);
+            fund.μInc = μ;
+            fund.σInc = σ;
 
-                        int lastIndex = -1;
-                        for(int j=i-1;j>=0;j--)
+                /* 遗传算法计算
+                double vMax = double.MinValue;
+                double v1Max = 0.0;
+                double v2Max = 0.0;
+                double v3Max = 0.0;
+                double maxMeanWin = 0.0;
+                double maxVarianceWin = 0.0;
+
+                double minMeanWin = 0.0;
+                double minVarianceWin = 0.0;
+
+                double nolMeanWin = 0.0;
+                double nolVarianceWin = 0.0;
+
+                for (double v1=0.0;v1<1;v1+=0.01)
+                {
+                    for (double v2 = 0.0; v2 < (1-v1); v2 += 0.01)
+                    {
+                        double v3 = 1 - v1 - v2;
+                        if (v3 < 0.0) continue;
+                        //分析
+                        List<double> maxScores = new List<double>();
+                        List<double> nolScores = new List<double>();
+                        List<double> minScores = new List<double>();
+                        for (int i = 1; i < needList.Count; i++)
                         {
-                            if(incFlags[j]!=0)
+                            double lastValue = needList[i - 1].Item2;
+                            double valueNow = needList[i].Item2;
+                            double incOnce = (valueNow - lastValue);
+
+                            int lastIndex = -1;
+                            for(int j=i-1;j>=0;j--)
                             {
-                                lastIndex = j;
-                                break;
+                                if(incFlags[j]!=0)
+                                {
+                                    lastIndex = j;
+                                    break;
+                                }
+                            }
+                            if (lastIndex < 0) continue;
+                            double lastFinalValue = needList[lastIndex].Item2;
+                            double incSum = (valueNow - lastFinalValue); 
+
+                            double equation = EquationCalculate(coefs[1], coefs[0], i);
+                            double regress = (valueNow - equation) ;
+
+                            double score = GetScore(v1, v2, v3, incOnce, incSum, regress);
+                            switch(incFlags[i])
+                            {
+                                case 1: //极大值
+                                    maxScores.Add(score);
+                                    break;
+                                case 0: //常值
+                                    nolScores.Add(score);
+                                    break;
+                                case -1: //极小值
+                                    minScores.Add(score);
+                                    break;
                             }
                         }
-                        if (lastIndex < 0) continue;
-                        double lastFinalValue = needList[lastIndex].Item2;
-                        double incSum = (valueNow - lastFinalValue); 
 
-                        double equation = EquationCalculate(coefs[1], coefs[0], i);
-                        double regress = (valueNow - equation) ;
-                        
-                        double score = GetScore(v1, v2, v3, incOnce, incSum, regress);
-                        switch(incFlags[i])
+                        //去掉偶然值
+                        double proportion = 0.05;
+                        maxScores.RemoveAbnormalValue(proportion);
+                        double maxMean = Mean(maxScores);
+                        double maxVariance = Variance(maxScores);
+
+                        nolScores.RemoveAbnormalValue(proportion);
+                        double nolMean = Mean(nolScores);
+                        double nolVariance = Variance(nolScores);
+
+                        minScores.RemoveAbnormalValue(proportion);
+                        double minMean = Mean(minScores);
+                        double minVariance = Variance(minScores);
+
+                        if (!(maxMean > nolMean && nolMean > minMean))
+                        { //不符合条件
+                            continue;
+                        }
+
+                        double v = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
+                        if (v > vMax)
                         {
-                            case 1: //极大值
-                                maxScores.Add(score);
-                                break;
-                            case 0: //常值
-                                nolScores.Add(score);
-                                break;
-                            case -1: //极小值
-                                minScores.Add(score);
-                                break;
+                            vMax = v;
+                            v1Max = v1;
+                            v2Max = v2;
+                            v3Max = v3;
+
+                            maxMeanWin = maxMean;
+                            maxVarianceWin = maxVariance;
+
+                            minMeanWin = minMean;
+                            minVarianceWin = minVariance;
+
+                            nolMeanWin = nolMean;
+                            nolVarianceWin = nolVariance;
                         }
                     }
-
-                    //去掉偶然值
-                    double proportion = 0.05;
-                    maxScores.RemoveAbnormalValue(proportion);
-                    double maxMean = Mean(maxScores);
-                    double maxVariance = Variance(maxScores);
-
-                    nolScores.RemoveAbnormalValue(proportion);
-                    double nolMean = Mean(nolScores);
-                    double nolVariance = Variance(nolScores);
-
-                    minScores.RemoveAbnormalValue(proportion);
-                    double minMean = Mean(minScores);
-                    double minVariance = Variance(minScores);
-
-                    if (!(maxMean > nolMean && nolMean > minMean))
-                    { //不符合条件
-                        continue;
-                    }
-
-                    double v = (maxMean - maxVariance) - (nolMean + nolVariance) + (nolMean - nolVariance) - (minMean + nolVariance);
-                    if (v > vMax)
-                    {
-                        vMax = v;
-                        v1Max = v1;
-                        v2Max = v2;
-                        v3Max = v3;
-
-                        maxMeanWin = maxMean;
-                        maxVarianceWin = maxVariance;
-
-                        minMeanWin = minMean;
-                        minVarianceWin = minVariance;
-
-                        nolMeanWin = nolMean;
-                        nolVarianceWin = nolVariance;
-                    }
                 }
-            }
 
-            fund.V1 = v1Max;
-            fund.V2 = v2Max;
-            fund.V3 = v3Max;
-            fund.μMax = maxMeanWin;
-            fund.σMax = maxVarianceWin;
-            fund.μNol = nolMeanWin;
-            fund.σNol = nolVarianceWin;
-            fund.μMin = minMeanWin;
-            fund.σMin = minVarianceWin;
-        }
+                fund.V1 = v1Max;
+                fund.V2 = v2Max;
+                fund.V3 = v3Max;
+                fund.μMax = maxMeanWin;
+                fund.σMax = maxVarianceWin;
+                fund.μNol = nolMeanWin;
+                fund.σNol = nolVarianceWin;
+                fund.μMin = minMeanWin;
+                fund.σMin = minVarianceWin;
+                */
+            }
 
         private static Point[] GetPoints(List<Tuple<DateTime, double>> needList)
         {

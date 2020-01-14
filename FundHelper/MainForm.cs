@@ -294,7 +294,8 @@ namespace FundHelper
         {
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
-            fundTable.Columns.Add(new DataColumn() { ColumnName = "Buy", DataType = typeof(double), Caption = "买入" });
+            //fundTable.Columns.Add(new DataColumn() { ColumnName = "Buy", DataType = typeof(double), Caption = "买入" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "Sigma", DataType = typeof(double), Caption = "(n)σ" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
@@ -472,7 +473,8 @@ namespace FundHelper
                 {
                     var row = fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault();
                     row["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
-                    row["Buy"] = Math.Round((double)fund.RealCost, 0);
+                    //row["Buy"] = Math.Round((double)fund.RealCost, 2);
+                    row["Sigma"] = Math.Round(fund.RealSigma, 2);
                 }
             }
         }
@@ -491,10 +493,13 @@ namespace FundHelper
                     fund.RealValue = realVal;
                     fund.RealIncrease = realInc;
 
-                    double chip = Think.Predict(fund);
-                    double cost = chip * (double)fund.RealValue * 100;
+                    double equation = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], fund.ThinkEndIndex - fund.ThinkStartIndex);
+                    double reg = (realVal - equation) / equation;
+                    fund.RealSigma = (reg- fund.μInc) / fund.σInc;
 
-                    fund.RealCost = cost;
+                    //double chip = Think.Predict(fund);
+                    //double cost = chip * (double)fund.RealValue * 100;
+                    //fund.RealCost = cost;
                 }
             }
         }
