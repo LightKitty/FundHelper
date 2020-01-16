@@ -222,9 +222,9 @@ namespace FundHelper
 
         private void FundsCalculate()
         {
+            DateTime startTime = DateTime.Now.AddYears(-1);
             foreach (Fund fund in funds)
             {
-                DateTime startTime = new DateTime(2019, 1, 1);
                 Think.Calculate(startTime, fund);
             }
         }
