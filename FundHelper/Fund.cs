@@ -94,7 +94,7 @@ namespace FundHelper
             {
                 realTime = time.AddDays(addDays);
                 addDays = addDays < 0 ? -addDays : -addDays - 1;
-                if (addDays > 2) return null; //超过范围 返回空
+                if (addDays > 30) return null; //超过范围 返回空
             }
             double? value = HistoryDic[LastDay];
             double? hisValue = HistoryDic[realTime];
