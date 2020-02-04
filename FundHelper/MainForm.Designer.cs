@@ -54,7 +54,6 @@
             // 
             // timerUpdate
             // 
-            this.timerUpdate.Enabled = true;
             this.timerUpdate.Interval = 5000;
             this.timerUpdate.Tick += new System.EventHandler(this.timerUpdate_Tick);
             // 
@@ -95,6 +94,7 @@
             this.dataGridViewFund.RowTemplate.Height = 23;
             this.dataGridViewFund.Size = new System.Drawing.Size(770, 525);
             this.dataGridViewFund.TabIndex = 0;
+            this.dataGridViewFund.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewFund_CellDoubleClick);
             // 
             // tabPage2
             // 

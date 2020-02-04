@@ -10,8 +10,13 @@ namespace FundHelper
     /// <summary>
     /// 基金
     /// </summary>
-    class Fund : Security
+    public class Fund : Security
     {
+        public int ThinkStartIndex { get; set; } //Think起始位置
+        /// <summary>
+        /// Think结束位置 注意是最后+1位置
+        /// </summary>
+        public int ThinkEndIndex { get; set; } //Think结束位置
         public DateTime ThinkStartTime { get; set; } //Think起始时间
         public DateTime ThinkEndTime { get; set; } //Think结束时间
         public double V1 { get; set; } //系数1
@@ -20,6 +25,9 @@ namespace FundHelper
         public List<FundDayPoint> ExtremePoints { get; set; }
         public double[] Coefs { get; set; }
         public int CoorZeroIndex { get; set; }
+        public int[] IncFlags { get; set; } //
+        public int[] Tages { get; set; }
+        //public List<Tuple<DateTime, double>> NeedList { get; set; }
 
         public double μMax { get; set; }
         public double σMax { get; set; }
@@ -29,6 +37,12 @@ namespace FundHelper
 
         public double μNol { get; set; }
         public double σNol { get; set; }
+
+        public double μInc { get; set; }
+        public double σInc { get; set; }
+
+        public double RealCost { get; set; }  //买入金额实时建议
+        public double RealSigma { get; set; } //实时增幅标准差与一倍标准差之比
 
         public double MaxNormalDistribution(double x)
         {
@@ -55,15 +69,15 @@ namespace FundHelper
             JObject jo = JObject.Parse(getResult.Substring(0, getResult.IndexOf(')')).Substring(getResult.IndexOf('{')));
             string hisData = jo["data"].ToString();
             string[] dayDatas = hisData.Split('#');
-            historyDic = new Dictionary<DateTime, double?>();
+            HistoryDic = new Dictionary<DateTime, double?>();
             foreach (string dayData in dayDatas)
             {
                 string[] dayVales = dayData.Split(',');
                 DateTime time = DateTime.ParseExact(dayVales[0], "yyyyMMdd", System.Globalization.CultureInfo.CurrentCulture);
                 string value = dayVales[1];
-                historyDic.Add(time, Convert.ToDouble(value));
+                HistoryDic.Add(time, Convert.ToDouble(value));
             }
-            lastDay = historyDic.Keys.FirstOrDefault();
+            LastDay = HistoryDic.Keys.FirstOrDefault();
         }
 
         /// <summary>
@@ -73,18 +87,18 @@ namespace FundHelper
         /// <returns></returns>
         public override double? GetIncrease(int days)
         {
-            DateTime time = lastDay.AddDays(-days);
+            DateTime time = LastDay.AddDays(-days);
             DateTime realTime = time;
             int addDays = -1;
-            while(!historyDic.Keys.Contains(realTime))
+            while(!HistoryDic.Keys.Contains(realTime))
             {
                 realTime = time.AddDays(addDays);
                 addDays = addDays < 0 ? -addDays : -addDays - 1;
-                if (addDays > 2) return null; //超过范围 返回空
+                if (addDays > 30) return null; //超过范围 返回空
             }
-            double? value = historyDic[lastDay];
-            double? hisValue = historyDic[realTime];
-            if (days < 5) hisValue = historyDic.Values.Take(days + 1).Last(); // 五天内按连续天数取
+            double? value = HistoryDic[LastDay];
+            double? hisValue = HistoryDic[realTime];
+            if (days < 5) hisValue = HistoryDic.Values.Take(days + 1).Last(); // 五天内按连续天数取
             double? result = 100 * (value - hisValue) / hisValue;
             return Math.Round((double)result, 2);
         }
