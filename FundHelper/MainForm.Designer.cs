@@ -67,7 +67,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(784, 561);
+            this.tabControl1.Size = new System.Drawing.Size(984, 561);
             this.tabControl1.TabIndex = 1;
             // 
             // tabPage1
@@ -76,7 +76,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 26);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(776, 531);
+            this.tabPage1.Size = new System.Drawing.Size(976, 531);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "基金";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -92,7 +92,7 @@
             this.dataGridViewFund.Name = "dataGridViewFund";
             this.dataGridViewFund.ReadOnly = true;
             this.dataGridViewFund.RowTemplate.Height = 23;
-            this.dataGridViewFund.Size = new System.Drawing.Size(770, 525);
+            this.dataGridViewFund.Size = new System.Drawing.Size(970, 525);
             this.dataGridViewFund.TabIndex = 0;
             this.dataGridViewFund.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewFund_CellDoubleClick);
             // 
@@ -174,7 +174,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 561);
+            this.ClientSize = new System.Drawing.Size(984, 561);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;

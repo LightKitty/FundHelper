@@ -296,6 +296,7 @@ namespace FundHelper
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
             //fundTable.Columns.Add(new DataColumn() { ColumnName = "Buy", DataType = typeof(double), Caption = "买入" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Sigma", DataType = typeof(double), Caption = "(n)σ" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealValue", DataType = typeof(double), Caption = "价格" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
@@ -328,7 +329,7 @@ namespace FundHelper
                 object realIncrease;
                 if (fund.RealIncrease != null) realIncrease = Math.Round((double)fund.RealIncrease, 2);
                 else realIncrease = null;
-                fundTable.Rows.Add(fund.Code, fund.Name, null, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
+                fundTable.Rows.Add(fund.Code, fund.Name, null, fund.RealValue, realIncrease, day1Value, day3Value, day15Value, day7Value, month1Value, month3Value, month6Value, year1Value);
             }
         }
 
@@ -339,6 +340,7 @@ namespace FundHelper
         {
             stockTable.Columns.Add(new DataColumn() { ColumnName = "Code", DataType = typeof(string), Caption = "编码" });
             stockTable.Columns.Add(new DataColumn() { ColumnName = "Name", DataType = typeof(string), Caption = "名称" });
+            stockTable.Columns.Add(new DataColumn() { ColumnName = "RealValue", DataType = typeof(double), Caption = "实时价格" });
             stockTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时涨幅(%)" });
             dataGridViewStock.DataSource = stockTable; // 绑定
             for (int i = 0; i < this.dataGridViewStock.Columns.Count; i++)
@@ -348,7 +350,7 @@ namespace FundHelper
             }
             foreach (var stock in stocks)
             {
-                stockTable.Rows.Add(stock.Code, stock.Name,stock.RealIncrease);
+                stockTable.Rows.Add(stock.Code, stock.Name, stock.RealValue, stock.RealIncrease);
             }
         }
 
@@ -447,7 +449,9 @@ namespace FundHelper
         {
             foreach(Stock stock in stocks)
             {
-                stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault()["RealInc"] = stock.RealIncrease;
+                var line = stockTable.Select($"Code = '{stock.Code}'").FirstOrDefault();
+                line["RealValue"] = Math.Round((double)stock.RealValue, 2);
+                line["RealInc"] = Math.Round((double)stock.RealIncrease, 2);
             }
         }
 
@@ -458,7 +462,9 @@ namespace FundHelper
         {
             foreach (var stock in stocks)
             {
-                stock.RealIncrease = GetStockIncNow(stock.Code);
+                var data = GetRealTimeValue(stock.Code);
+                stock.RealValue= Convert.ToDouble(data[1]);
+                stock.RealIncrease = Convert.ToDouble(data[3]);
             }
         }
 
@@ -472,6 +478,7 @@ namespace FundHelper
                 if(fund.RealIncrease != null)
                 {
                     var row = fundTable.Select($"Code = '{fund.Code}'").FirstOrDefault();
+                    row["RealValue"] = Math.Round((double)fund.RealValue, 2);
                     row["RealInc"] = Math.Round((double)fund.RealIncrease, 2);
                     //row["Buy"] = Math.Round((double)fund.RealCost, 2);
                     row["Sigma"] = Math.Round(fund.RealSigma, 2);
@@ -527,10 +534,10 @@ namespace FundHelper
         /// 获取今日股票当前涨跌
         /// </summary>
         /// <returns></returns>
-        private double GetStockIncNow(string fundCode)
-        {
-            return Convert.ToDouble(GetRealTimeValue(fundCode)[3]);
-        }
+        //private double GetStockIncNow(string fundCode)
+        //{
+        //    return Convert.ToDouble(GetRealTimeValue(fundCode)[3]);
+        //}
 
         /// <summary>
         /// 获取股票基金信息
