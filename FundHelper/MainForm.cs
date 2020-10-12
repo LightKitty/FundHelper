@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LightLog;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -297,7 +298,7 @@ namespace FundHelper
             //fundTable.Columns.Add(new DataColumn() { ColumnName = "Buy", DataType = typeof(double), Caption = "买入" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "Sigma", DataType = typeof(double), Caption = "(n)σ" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "RealValue", DataType = typeof(double), Caption = "价格" });
-            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "实时" });
+            fundTable.Columns.Add(new DataColumn() { ColumnName = "RealInc", DataType = typeof(double), Caption = "涨幅" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day1", DataType = typeof(double), Caption = "1日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day3", DataType = typeof(double), Caption = "3日" });
             fundTable.Columns.Add(new DataColumn() { ColumnName = "day7", DataType = typeof(double), Caption = "7日" });
@@ -572,17 +573,24 @@ namespace FundHelper
         /// </summary>
         public async void RealUpdate()
         {
-            var t = Task.Run(() =>
+            try
             {
-                fundsRealUpdate();
-                StockRealUpdate();
-                GoldRealUpadte();
-            });
-            await t;
-            FundTableUpdate();
-            ChartRealUpdate();
-            StockTableUpdate();
-            GoldLableUpdate();
+                var t = Task.Run(() =>
+                {
+                    fundsRealUpdate();
+                    StockRealUpdate();
+                    GoldRealUpadte();
+                });
+                await t;
+                FundTableUpdate();
+                ChartRealUpdate();
+                StockTableUpdate();
+                GoldLableUpdate();
+            }
+            catch(Exception ex)
+            {
+                Log.Error("更新数据错误", ex);
+            }
         }
 
         private void FundsPredict()
