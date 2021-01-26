@@ -15,7 +15,7 @@ namespace FundHelper
         public string Name { get; set; } //基金名称
         public double? RealIncrease { get; set; } //实时涨幅
         public double? RealValue { get; set; } //实时价值
-        public Dictionary<DateTime,double?> HistoryDic { get; set; }
+        public Dictionary<DateTime, double?> HistoryDic { get; set; }
         public List<Tuple<DateTime, double>> HistoryList { get; set; }
         public DateTime LastDay { get; set; }
 

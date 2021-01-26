@@ -80,17 +80,33 @@ namespace FundHelper
             chart1.Series.Add("line3");
             chart1.Series.Add("line4");
             chart1.Series.Add("line5");
+            chart1.Series.Add("line6");
+            chart1.Series.Add("line7");
+            chart1.Series.Add("line8");
             //绘制折线图
             chart1.Series["line1"].ChartType = SeriesChartType.Line;
             chart1.Series["line1"].Color = Color.Black;
+            chart1.Series["line1"].BorderWidth = 2;
             chart1.Series["line2"].ChartType = SeriesChartType.Point;
             chart1.Series["line2"].Color = Color.Red;
             chart1.Series["line3"].ChartType = SeriesChartType.Point;
-            chart1.Series["line3"].Color = Color.Blue;
+            chart1.Series["line3"].Color = Color.Green;
             chart1.Series["line4"].ChartType = SeriesChartType.Line;
-            chart1.Series["line4"].Color = Color.Green;
-            chart1.Series["line5"].ChartType = SeriesChartType.Point;
+            chart1.Series["line4"].Color = Color.Orange;
+            chart1.Series["line4"].BorderWidth = 2;
+            chart1.Series["line5"].ChartType = SeriesChartType.Line;
             chart1.Series["line5"].Color = Color.Red;
+            chart1.Series["line5"].BorderDashStyle = ChartDashStyle.Dash;
+            chart1.Series["line6"].ChartType = SeriesChartType.Line;
+            chart1.Series["line6"].Color = Color.Green;
+            chart1.Series["line6"].BorderDashStyle = ChartDashStyle.Dash;
+            chart1.Series["line7"].ChartType = SeriesChartType.Line;
+            chart1.Series["line7"].Color = Color.DarkRed;
+            chart1.Series["line7"].BorderDashStyle = ChartDashStyle.Dash;
+            chart1.Series["line8"].ChartType = SeriesChartType.Line;
+            chart1.Series["line8"].Color = Color.DarkGreen;
+            chart1.Series["line8"].BorderDashStyle = ChartDashStyle.Dash;
+
         }
 
         /// <summary>
@@ -190,6 +206,9 @@ namespace FundHelper
             chart1.Series["line3"].Points.Clear();
             chart1.Series["line4"].Points.Clear();
             chart1.Series["line5"].Points.Clear();
+            chart1.Series["line6"].Points.Clear();
+            chart1.Series["line7"].Points.Clear();
+            chart1.Series["line8"].Points.Clear();
 
             int x1 = 0;
             double y1 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x1);
@@ -197,6 +216,21 @@ namespace FundHelper
             double y2 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x2);
             chart1.Series["line4"].Points.AddXY(x1,y1);
             chart1.Series["line4"].Points.AddXY(x2,y2);
+
+            //double py = Math.Pow((1 + fund.Coefs[1]), 0.5); //比值系数
+            //double py1 = py * fund.σInc; //一倍标准差y方向长度
+            chart1.Series["line5"].Points.AddXY(x1, y1 + fund.σInc);
+            chart1.Series["line5"].Points.AddXY(x2, y2 + fund.σInc);
+
+            chart1.Series["line6"].Points.AddXY(x1, y1 - fund.σInc);
+            chart1.Series["line6"].Points.AddXY(x2, y2 - fund.σInc);
+
+            chart1.Series["line7"].Points.AddXY(x1, y1 + 2 * fund.σInc);
+            chart1.Series["line7"].Points.AddXY(x2, y2 + 2 * fund.σInc);
+
+            chart1.Series["line8"].Points.AddXY(x1, y1 - 2 * fund.σInc);
+            chart1.Series["line8"].Points.AddXY(x2, y2 - 2 * fund.σInc);
+
             for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
             {
                 chart1.Series["line1"].Points.AddXY(i - fund.ThinkStartIndex, fund.HistoryList[i].Item2);
