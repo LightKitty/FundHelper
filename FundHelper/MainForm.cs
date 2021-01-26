@@ -29,6 +29,8 @@ namespace FundHelper
         DateTime hisTime = DateTime.Now; //历史计算时间
 
         private string chartFundCode; //图表基金编码
+
+        Fund currentFund;
         #endregion
 
         /// <summary>
@@ -55,7 +57,9 @@ namespace FundHelper
             //List<Tuple<DateTime, double>> needList;
             //Think.Calculate(startTime, fund);
 
-            ChartDarw(funds.Find(x => x.Code == "fu_005918"));
+            currentFund = funds.Find(x => x.Code == "fu_005918");
+            ChartDarw(currentFund);
+            
 
             timerUpdate.Start();
 
@@ -197,7 +201,7 @@ namespace FundHelper
             //chart1.Series["line1"].Points[chart1.Series["line1"].Points.Count-1].SetValueY(fund.RealValue);
         }
 
-        private void ChartDarw(Fund fund)
+        private void ChartDarw(Fund fund ,int type = 0)
         {
             chartFundCode = fund.Code;
             tabControl1.TabPages[3].Text = fund.Name;
@@ -210,26 +214,57 @@ namespace FundHelper
             chart1.Series["line7"].Points.Clear();
             chart1.Series["line8"].Points.Clear();
 
-            int x1 = 0;
-            double y1 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x1);
-            int x2 = fund.ThinkEndIndex - fund.ThinkStartIndex;
-            double y2 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x2);
-            chart1.Series["line4"].Points.AddXY(x1,y1);
-            chart1.Series["line4"].Points.AddXY(x2,y2);
+            switch(type)
+            {
+                case 0:
+                    {
+                        int x1 = 0;
+                        int x2 = fund.ThinkEndIndex - fund.ThinkStartIndex;
+                        double y1 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x1);
+                        double y2 = Think.EquationCalculate(fund.Coefs[1], fund.Coefs[0], x2);
+                        chart1.Series["line4"].Points.AddXY(x1, y1);
+                        chart1.Series["line4"].Points.AddXY(x2, y2);
 
-            //double py = Math.Pow((1 + fund.Coefs[1]), 0.5); //比值系数
-            //double py1 = py * fund.σInc; //一倍标准差y方向长度
-            chart1.Series["line5"].Points.AddXY(x1, y1 + fund.σInc);
-            chart1.Series["line5"].Points.AddXY(x2, y2 + fund.σInc);
+                        //double py = Math.Pow((1 + fund.Coefs[1]), 0.5); //比值系数
+                        //double py1 = py * fund.σInc; //一倍标准差y方向长度
+                        chart1.Series["line5"].Points.AddXY(x1, y1 + fund.σInc);
+                        chart1.Series["line5"].Points.AddXY(x2, y2 + fund.σInc);
 
-            chart1.Series["line6"].Points.AddXY(x1, y1 - fund.σInc);
-            chart1.Series["line6"].Points.AddXY(x2, y2 - fund.σInc);
+                        chart1.Series["line6"].Points.AddXY(x1, y1 - fund.σInc);
+                        chart1.Series["line6"].Points.AddXY(x2, y2 - fund.σInc);
 
-            chart1.Series["line7"].Points.AddXY(x1, y1 + 2 * fund.σInc);
-            chart1.Series["line7"].Points.AddXY(x2, y2 + 2 * fund.σInc);
+                        chart1.Series["line7"].Points.AddXY(x1, y1 + 2 * fund.σInc);
+                        chart1.Series["line7"].Points.AddXY(x2, y2 + 2 * fund.σInc);
 
-            chart1.Series["line8"].Points.AddXY(x1, y1 - 2 * fund.σInc);
-            chart1.Series["line8"].Points.AddXY(x2, y2 - 2 * fund.σInc);
+                        chart1.Series["line8"].Points.AddXY(x1, y1 - 2 * fund.σInc);
+                        chart1.Series["line8"].Points.AddXY(x2, y2 - 2 * fund.σInc);
+                    }
+                    break;
+                case 1:
+                    {
+                        for (int i = 0; i <= fund.ThinkEndIndex - fund.ThinkStartIndex; i++)
+                        {
+                            //int index = fund.ThinkStartIndex;
+                            int x1 = i;
+                            double y1 = Think.EquationCalculate(fund.ParametersList[i].k, fund.ParametersList[i].b, x1);
+                            chart1.Series["line4"].Points.AddXY(x1, y1);
+
+                            chart1.Series["line5"].Points.AddXY(x1, y1 + fund.ParametersList[i].σInc);
+                            //chart1.Series["line5"].Points.AddXY(x2, y2 + fund.σInc);
+
+                            chart1.Series["line6"].Points.AddXY(x1, y1 - fund.ParametersList[i].σInc);
+                            //chart1.Series["line6"].Points.AddXY(x2, y2 - fund.σInc);
+
+                            chart1.Series["line7"].Points.AddXY(x1, y1 + 2 * fund.ParametersList[i].σInc);
+                            //chart1.Series["line7"].Points.AddXY(x2, y2 + 2 * fund.σInc);
+
+                            chart1.Series["line8"].Points.AddXY(x1, y1 - 2 * fund.ParametersList[i].σInc);
+                            //chart1.Series["line8"].Points.AddXY(x2, y2 - 2 * fund.σInc);
+                        }
+                    }
+                    break;
+            }
+            
 
             for (int i = fund.ThinkStartIndex; i < fund.ThinkEndIndex; i++)
             {
@@ -666,7 +701,27 @@ namespace FundHelper
                 var dataRowView = (DataRowView)row.DataBoundItem;
                 string fundCode = dataRowView["Code"].ToString();//获取表的列名(id)
                 Fund fund = funds.Find(x => x.Code == fundCode);
-                ChartDarw(fund);
+                currentFund = fund;
+                if (checkBox1.Checked)
+                {
+                    ChartDarw(currentFund, 0);
+                }
+                else
+                {
+                    ChartDarw(currentFund, 1);
+                }
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if(checkBox1.Checked)
+            {
+                ChartDarw(currentFund, 1);
+            }
+            else
+            {
+                ChartDarw(currentFund, 0);
             }
         }
     }

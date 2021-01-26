@@ -8,6 +8,18 @@ namespace FundHelper
 {
     public class Parameters
     {
+        public int startIndex;
+
+        public int endIndex;
+
+        public int index;
+
+        public DateTime startTime;
+
+        public DateTime endTime;
+
+        public DateTime time;
+
         public double k; //拟合直线参数k
 
         public double b; //拟合直线参数b

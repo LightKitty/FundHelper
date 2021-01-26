@@ -24,11 +24,26 @@ namespace FundHelper
 
             Calculate(startIndex, endIndex, fund);
 
-            //for(int i = endIndex; i >= startIndex; i --)
-            //{
-            //    DateTime _endTime = fund.HistoryList[i].Item1;
-            //    DateTime _startTime = _endTime - (endTime - startTime);
-            //}
+            List<Parameters> parametersList = new List<Parameters>();
+            for (int i = endIndex; i >= startIndex; i--)
+            {
+                DateTime _time = fund.HistoryList[i - 1].Item1;
+                DateTime _endTime = _time.AddDays(1);
+                DateTime _startTime = _endTime - (endTime - startTime);
+                int _startIndex = fund.HistoryList.FindIndex(x => x.Item1 >= _startTime);
+                int _endIndex = fund.HistoryList.FindLastIndex(x => x.Item1 <= _endTime) + 1;
+
+                var p = CalculateV2(_startIndex, _endIndex, fund);
+                p.startIndex = _startIndex;
+                p.endIndex = _endIndex;
+                p.startTime = _startTime;
+                p.endTime = _endTime;
+                p.time = _time;
+                p.index = 1;
+                parametersList.Add(p);
+            }
+            fund.ParametersList = parametersList;
+            fund.ParametersList.Reverse();
         }
 
         public static Parameters CalculateV2(int startIndex, int endIndex, Fund fund)
@@ -59,8 +74,8 @@ namespace FundHelper
 
             double[] coefs = MultiLine(arrX, arrY, length, 1);
             //fund.Coefs = coefs;
-            result.k = coefs[0];
-            result.b = coefs[1];
+            result.k = coefs[1];
+            result.b = coefs[0];
             //int[] incFinalFlags = ExtremePointsFiltrate(needList, incFlags);
             //fund.IncFlags = incFlags;
 

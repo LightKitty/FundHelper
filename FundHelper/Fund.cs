@@ -12,6 +12,8 @@ namespace FundHelper
     /// </summary>
     public class Fund : Security
     {
+        public List<Parameters> ParametersList { get; set; }
+
         public int ThinkStartIndex { get; set; } //Think起始位置
         /// <summary>
         /// Think结束位置 注意是最后+1位置
