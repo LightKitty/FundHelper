@@ -201,7 +201,19 @@ namespace FundHelper
             //chart1.Series["line1"].Points[chart1.Series["line1"].Points.Count-1].SetValueY(fund.RealValue);
         }
 
-        private void ChartDarw(Fund fund ,int type = 0)
+        private void ChartDarw(Fund fund)
+        {
+            if (checkBox1.Checked)
+            {
+                ChartDarw(currentFund, 1);
+            }
+            else
+            {
+                ChartDarw(currentFund, 0);
+            }
+        }
+
+        private void ChartDarw(Fund fund ,int type)
         {
             chartFundCode = fund.Code;
             tabControl1.TabPages[3].Text = fund.Name;
@@ -244,9 +256,11 @@ namespace FundHelper
                     {
                         for (int i = 0; i <= fund.ThinkEndIndex - fund.ThinkStartIndex; i++)
                         {
+                            //if (i >= fund.ParametersList.Count) break;
                             //int index = fund.ThinkStartIndex;
                             int x1 = i;
                             double y1 = Think.EquationCalculate(fund.ParametersList[i].k, fund.ParametersList[i].b, x1);
+                            if (y1 == 0) continue;
                             chart1.Series["line4"].Points.AddXY(x1, y1);
 
                             chart1.Series["line5"].Points.AddXY(x1, y1 + fund.ParametersList[i].σInc);
@@ -702,27 +716,13 @@ namespace FundHelper
                 string fundCode = dataRowView["Code"].ToString();//获取表的列名(id)
                 Fund fund = funds.Find(x => x.Code == fundCode);
                 currentFund = fund;
-                if (checkBox1.Checked)
-                {
-                    ChartDarw(currentFund, 0);
-                }
-                else
-                {
-                    ChartDarw(currentFund, 1);
-                }
+                ChartDarw(currentFund);
             }
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            if(checkBox1.Checked)
-            {
-                ChartDarw(currentFund, 1);
-            }
-            else
-            {
-                ChartDarw(currentFund, 0);
-            }
+            ChartDarw(currentFund);
         }
     }
 }

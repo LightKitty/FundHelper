@@ -27,6 +27,11 @@ namespace FundHelper
             List<Parameters> parametersList = new List<Parameters>();
             for (int i = endIndex; i >= startIndex; i--)
             {
+                if (i < 1)
+                {
+                    parametersList.Add(new Parameters());
+                    continue;
+                }
                 DateTime _time = fund.HistoryList[i - 1].Item1;
                 DateTime _endTime = _time.AddDays(1);
                 DateTime _startTime = _endTime - (endTime - startTime);
