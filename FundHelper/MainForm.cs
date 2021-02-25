@@ -59,17 +59,17 @@ namespace FundHelper
 
             currentFund = funds.Find(x => x.Code == "fu_005918");
             ChartDarw(currentFund);
-            
 
+            RealUpdate();
             timerUpdate.Start();
 
-            return;
-            timerUpdate.Stop();
-            Fund fund = funds.First(x => x.Code == "fu_005918");
-            DateTime startTime = new DateTime(2019, 1, 1);
-            DateTime endTimeStart = new DateTime(2019, 5, 1);
-            DateTime endTimeEnd = new DateTime(2019, 12, 13);
-            double rate = YieldRate(fund, startTime, endTimeStart, endTimeEnd);
+            //return;
+            //timerUpdate.Stop();
+            //Fund fund = funds.First(x => x.Code == "fu_005918");
+            //DateTime startTime = new DateTime(2019, 1, 1);
+            //DateTime endTimeStart = new DateTime(2019, 5, 1);
+            //DateTime endTimeEnd = new DateTime(2019, 12, 13);
+            //double rate = YieldRate(fund, startTime, endTimeStart, endTimeEnd);
         }
 
         public void ChartInit()
