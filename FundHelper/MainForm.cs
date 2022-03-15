@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -592,6 +593,7 @@ namespace FundHelper
                     //double cost = chip * (double)fund.RealValue * 100;
                     //fund.RealCost = cost;
                 }
+                Thread.Sleep(100);
             }
         }
 
@@ -631,7 +633,7 @@ namespace FundHelper
         private string[] GetRealTimeValue(string code)
         {
             string requestUrl = string.Format(Common.realTimeUrl, code);
-            string result = Helper.ByresToString(Helper.SimpleGet(requestUrl));
+            string result = Helper.ByresToString(Helper.SimpleGet(requestUrl, "http://finance.sina.com.cn/"));
             return result.Split(',');
         }
 

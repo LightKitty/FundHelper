@@ -18,10 +18,11 @@ namespace FundHelper
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static byte[] SimpleGet(string url)
+        public static byte[] SimpleGet(string url, string referer = null)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
+            if (referer != null) request.Referer = referer;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream stream = response.GetResponseStream();
             int count = (int)response.ContentLength;
